@@ -1,15 +1,14 @@
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
-from pseudometricfeatures import wavelet_features_chw
 
-def feasible_sets_wavelet(
-    images,
+
+def feasible_sets_features(
+    features,
     y,
     N_max=50,
     qx=0.10,
     tau_y=None,
     qy=0.10,
-    wavelet="haar",
 ):
     """
     Construct feasible sets for a collection of images using wavelet features.
@@ -25,8 +24,8 @@ def feasible_sets_wavelet(
     estimated from the corresponding target differences.
 
     Args:
-        images:
-            Array of shape ``(N, C, H, W)`` containing the input images.
+        features:
+            Array of shape ``(N, D)`` containing the input features.
         y:
             One-dimensional array of target values of length ``N``.
         N_max:
@@ -51,16 +50,9 @@ def feasible_sets_wavelet(
             - ``distances``: k-nearest-neighbor distances in feature space.
             - ``indices``: Indices corresponding to ``distances``.
     """
-    N = len(images)
+    N = len(features)
     y = np.asarray(y, dtype=np.float32)
 
-    # --------------------------------------------------
-    # Compute wavelet features
-
-    feats = np.stack([
-        wavelet_features_chw(images[i], wavelet=wavelet)
-        for i in range(N)
-    ])
 
     # --------------------------------------------------
     # kNN search
@@ -71,9 +63,9 @@ def feasible_sets_wavelet(
         n_neighbors=n_neighbors,
         algorithm="auto"
     )
-    nbrs.fit(feats)
+    nbrs.fit(features)
 
-    distances, indices = nbrs.kneighbors(feats)
+    distances, indices = nbrs.kneighbors(features)
 
     # --------------------------------------------------
     # Global thresholds
