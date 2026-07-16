@@ -15,7 +15,7 @@ def wavelet_features_chw(img_chw, wavelet="haar"):
     return np.concatenate(feats).astype(np.float32)
 
 
-def feasible_sets_features(
+def wavelet_array_features(
     images,
     wavelet="haar",
 ):
@@ -30,10 +30,6 @@ construction.
 Args:
     images:
         Array of shape ``(N, C, H, W)`` containing the input images.
-    y:
-        One-dimensional array of target values. This argument is included for
-        interface consistency with related functions but is not used in the
-        computation.
     wavelet:
         Name of the wavelet used to compute the image features.
 
@@ -44,7 +40,7 @@ Returns:
 """
 
     N = len(images)
-    y = np.asarray(y, dtype=np.float32)
+
 
     # --------------------------------------------------
     # Compute wavelet features

@@ -2,11 +2,12 @@ import numpy as np
 from sklearn.neighbors import NearestNeighbors
 
 
-def feasible_sets_classification(
+def feasible_sets_classification_nn(
     features,
     labels,
     N_max=50,
     qx=0.10,
+    ext_d = False
 ):
     """
     Construct feasible label sets for a classification problem using
@@ -80,12 +81,13 @@ def feasible_sets_classification(
 
         feasible = []
 
-        for idx, dist in zip(indices[k, 1:], distances[k, 1:]):
+        for idx, dist in zip(indices[k], distances[k]):
 
             if dist <= tau_x:
 
                 feasible.append(labels[idx])
-                D_prime.append((k, labels[idx]))
+                if ext_d:
+                    D_prime.append((k, labels[idx]))
 
         feasible_sets.append(np.array(feasible))
 
