@@ -1,6 +1,7 @@
 import numpy as np
+from scipy.spatial.distance import cdist
 
-def compute_kernel_size(feasible_sets, targets, metric="l2", p=2.0):
+def compute_kernel_size(feasible_sets, metric="l2", p=2.0):
     """
     Compute the average kernel size from precomputed feasible sets.
 
@@ -8,8 +9,6 @@ def compute_kernel_size(feasible_sets, targets, metric="l2", p=2.0):
     ----------
     feasible_sets : list[np.ndarray]
         feasible_sets[k] contains the feasible set for the target sample k.
-    targets : np.ndarray
-        Target values.
     metric : str
         Metric used to compute the kernel size in the target space.
     p : float
@@ -23,33 +22,24 @@ def compute_kernel_size(feasible_sets, targets, metric="l2", p=2.0):
         (min, mean, median, max)
     """
 
-    if metric == "l1":
-        diff_func = lambda x, y: np.sum(np.abs(x - y))
-    elif metric == "l2":
-        diff_func = lambda x, y: np.linalg.norm(x - y)
-    else:
-        raise ValueError("Unsupported metric")
-
-    targets = np.asarray(targets, dtype=np.float32)
-
     M_prime = 0
     sum_term = 0.0
     Nk_list = []
 
-    for S in feasible_sets:
+    for feas in feasible_sets:
 
-        Nk = len(S)
+        Nk = len(feas)
         Nk_list.append(Nk)
         M_prime += Nk
 
         if Nk < 2:
             continue
 
-        targets_within = targets[S]
 
-        diffs = diff_func(
-            targets_within[:, None], targets_within[None, :]
-        )**p
+        if metric == "l1":
+            diffs = cdist(feas, feas, metric="cityblock") ** p
+        elif metric == "l2":
+            diffs = cdist(feas, feas, metric="euclidean") ** p
 
         pair_sum = np.sum(np.triu(diffs, k=1))
 
