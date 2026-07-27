@@ -5,6 +5,7 @@ from sklearn.neighbors import NearestNeighbors
 def feasible_sets_classification_nn(
     features,
     labels,
+    inputs = None,
     N_max=50,
     qx=0.10,
     ext_d = False
@@ -25,6 +26,8 @@ def feasible_sets_classification_nn(
     Args:
         features:
             Array of shape ``(N, D)`` containing input features.
+        inputs:
+            Array of shape ``(N, D)`` containing input data.
         labels:
             Array of length ``N`` containing class labels.
         N_max:
@@ -86,8 +89,8 @@ def feasible_sets_classification_nn(
             if dist <= tau_x:
 
                 feasible.append(labels[idx])
-                if ext_d:
-                    D_prime.append((features[k], labels[idx]))
+                if ext_d and inputs is not None:
+                    D_prime.append((inputs[k], labels[idx]))
 
         feasible_sets.append(np.array(feasible))
 
