@@ -87,7 +87,7 @@ def feasible_sets_classification_nn(
 
                 feasible.append(labels[idx])
                 if ext_d:
-                    D_prime.append((k, labels[idx]))
+                    D_prime.append((features[k], labels[idx]))
 
         feasible_sets.append(np.array(feasible))
 
