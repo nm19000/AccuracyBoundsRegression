@@ -161,3 +161,10 @@ cython_debug/
 #.idea/
 
 
+## dara
+
+.examples/data
+.examples/RESISC45/data
+.examples/TropicalCyclone/data
+.examples/TropicalCyclone/extracted
+examples/CIFAR10/.DS_Store
