@@ -44,7 +44,6 @@ Returns:
 """
 
     N = len(images)
-    y = np.asarray(y, dtype=np.float32)
 
     # --------------------------------------------------
     # Compute wavelet features
