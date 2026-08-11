@@ -12,11 +12,11 @@ from utils import tc_uncertainty2
 
 
 SOURCE_DIR = Path(
-    "extracted/nasa_tropical_storm_competition_test_source"
+    "data/extracted/nasa_tropical_storm_competition_train_source"
 )
 
 LABEL_DIR = Path(
-    "extracted/nasa_tropical_storm_competition_test_labels"
+    "data/extracted/nasa_tropical_storm_competition_train_labels"
 )
 
 
@@ -55,7 +55,7 @@ def load_storm_subset(N=20000, seed=123):
 
 
         storm_id = label_folder.name.replace(
-            "nasa_tropical_storm_competition_test_labels_",
+            "nasa_tropical_storm_competition_train_labels_",
             ""
         )
 
@@ -73,7 +73,7 @@ def load_storm_subset(N=20000, seed=123):
 
         image_folder = (
             SOURCE_DIR /
-            f"nasa_tropical_storm_competition_test_source_{storm_id}"
+            f"nasa_tropical_storm_competition_train_source_{storm_id}"
         )
 
         image_file = image_folder / "image.jpg"
@@ -191,7 +191,7 @@ for run in range(num_runs):
     result = feasible_sets_features_nn_xy(
         features,
         train_labels,
-        N_max=200,
+        N_max=300,
         qx=0.1,
         target_uncertainty=tc_uncertainty2,
     )
