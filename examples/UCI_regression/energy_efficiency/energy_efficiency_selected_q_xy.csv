@@ -1,0 +1,3 @@
+target,selected_q,tau_x,Kernel_size,M_prime,mean_feasible_set_size,median_feasible_set_size,min_feasible_set_size,max_feasible_set_size,rel_change_K,normalized_local_curvature,plateau_start_q,plateau_end_q,plateau_length,fallback_used
+Y1,0.020000,0.645182,0.553437,1344,1.750000,2.000000,1,2,0.000000,0.000000,0.020000,0.090000,8,False
+Y2,0.020000,0.645182,1.546744,1344,1.750000,2.000000,1,2,0.000000,0.000000,0.020000,0.090000,8,False
