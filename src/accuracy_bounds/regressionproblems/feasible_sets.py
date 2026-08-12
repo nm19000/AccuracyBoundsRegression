@@ -200,7 +200,7 @@ def feasible_sets_features_nn_xy(
     N = len(features_x)
 
     if target_uncertainty is not None:
-        sigma = np.asarray(
+        tau_y_heterosk = np.asarray(
             target_uncertainty(features_y.ravel())
         )
 
@@ -267,10 +267,11 @@ def feasible_sets_features_nn_xy(
         for idx, dist in zip(indices_y[k], distances_y[k]):
 
             if target_uncertainty is None:
+                tau_y = tau_y
+            else:
+                tau_y = tau_y_heterosk[idx]
 
-                threshold = tau_y
-
-            if dist <= threshold:
+            if dist <= tau_y:
 
                 feasible.append(features_y[idx])
 
