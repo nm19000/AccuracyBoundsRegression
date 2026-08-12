@@ -33,8 +33,8 @@ FEATURE_COLS = [
 ]
 
 TARGET_COLS = {
-    "Y1": "Heating Load",
-    "Y2": "Cooling Load",
+    "Y1": "Y1",
+    "Y2": "Y2",
 }
 
 LOG_TARGET = False
@@ -93,7 +93,7 @@ def load_energy_efficiency_dataset(
     print(f"Dataset shape: {df.shape}")
     print(f"Columns found: {df.columns.tolist()}")
 
-    required_cols = feature_cols + list(target_cols.keys())
+    required_cols = feature_cols + list(target_cols.values())
     missing = [col for col in required_cols if col not in df.columns]
 
     if missing:
@@ -108,8 +108,9 @@ def load_energy_efficiency_dataset(
     X = scaler.fit_transform(X_raw)
 
     targets = {}
-    for target_col in target_cols:
-        y = df[target_col].to_numpy(dtype=float).reshape(-1, 1)
+
+    for target_col, target_name in target_cols.items():
+        y = df[target_name].to_numpy(dtype=float).reshape(-1, 1)
         if LOG_TARGET:
             y = np.log1p(y)
         targets[target_col] = y

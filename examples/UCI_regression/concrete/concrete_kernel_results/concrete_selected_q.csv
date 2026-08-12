@@ -1,0 +1,2 @@
+selected_q,tau_x,tau_y,Kernel_size,M_prime,mean_feasible_set_size,median_feasible_set_size,min_feasible_set_size,max_feasible_set_size,rel_change_K,normalized_local_curvature,plateau_start_q,plateau_end_q,plateau_length,fallback_used
+0.020000,0.000000,0.000000,2.813861,1138,1.104854,1.000000,1,4,0.000000,0.000000,0.020000,0.040000,3,False
