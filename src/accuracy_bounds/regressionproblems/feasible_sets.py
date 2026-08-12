@@ -8,6 +8,8 @@ def feasible_sets_features_nnx(
     N_max=50,
     qx=0.05,
     ext_D=False,
+    metricx='minkowski',
+    px=2,
 ):
     """
     Construct feasible sets for a collection of images using wavelet features.
@@ -30,8 +32,13 @@ def feasible_sets_features_nnx(
             Maximum number of nearest neighbors considered for each sample.
         qx:
             Quantile used to estimate the feature-space threshold ``tau_x``.
-        wavelet:
-            Wavelet used to compute the image features.
+        ext_D:
+            If True, also construct the extended dataset ``D_prime``.
+        metricx:
+            Distance metric to use for nearest-neighbor search on inputs (features). Default is 'minkowski', 
+            results in l2 norm for p=2.
+        px:
+            Power parameter for the Minkowski metric. Default is 2 (Euclidean distance).
 
     Returns:
         dict containing:
@@ -53,7 +60,9 @@ def feasible_sets_features_nnx(
 
     nbrs_x = NearestNeighbors(
         n_neighbors=n_neighbors,
-        algorithm="auto"
+        algorithm="auto",
+        metric=metricx, 
+        p=px
     )
     nbrs_x.fit(features_x)
 
@@ -104,6 +113,10 @@ def feasible_sets_features_nn_xy(
     tau_y=0.0,
     target_uncertainty=None,
     ext_D=False,
+    metricx='minkowski',
+    px=2,
+    metricy='minkowski',
+    py=2
         ):
     """ Construct feasible sets using nearest neighbors in both input and target spaces. 
     For each sample ``(x_k, y_k)``, the feasible set consists of target values
@@ -126,38 +139,49 @@ def feasible_sets_features_nn_xy(
     where ``sigma(y) = target_uncertainty(y)`` is the measurement uncertainty
     associated with target value ``y``.
 
-    Parameters
-    ----------
-    features_x : ndarray of shape (N, D)
-        Input feature vectors.
+    Args:
+        features_x : ndarray of shape (N, D)
+            Input feature vectors.
 
-    features_y : ndarray of shape (N, D')
-        Target vectors.
+        features_y : ndarray of shape (N, D')
+            Target vectors.
 
-    N_max : int, default=50
-        Maximum number of nearest neighbors considered.
+        N_max : int, default=50
+            Maximum number of nearest neighbors considered.
 
-    qx : float, default=0.05
-        Quantile used to estimate ``tau_x`` when ``tau_x == 0``.
+        qx : float, default=0.05
+            Quantile used to estimate ``tau_x`` when ``tau_x == 0``.
 
-    qy : float, default=0.05
-        Quantile used to estimate ``tau_y`` when ``tau_y == 0`` and no
-        ``target_uncertainty`` model is supplied.
+        qy : float, default=0.05
+            Quantile used to estimate ``tau_y`` when ``tau_y == 0`` and no
+            ``target_uncertainty`` model is supplied.
 
-    tau_x : float, default=0
-        Input-space threshold. If zero, it is estimated automatically.
+        tau_x : float, default=0
+            Input-space threshold. If zero, it is estimated automatically.
 
-    tau_y : float, default=0
-        Constant target-space threshold. Ignored when
-        ``target_uncertainty`` is provided.
+        tau_y : float, default=0
+            Constant target-space threshold. Ignored when
+            ``target_uncertainty`` is provided.
 
-    target_uncertainty : callable or None, default=None
-        Function mapping a target value to its measurement uncertainty.
-        If supplied, feasible target neighbors are determined using
-        sample-dependent thresholds instead of the global ``tau_y``.
+        target_uncertainty : callable or None, default=None
+            Function mapping a target value to its measurement uncertainty.
+            If supplied, feasible target neighbors are determined using
+            sample-dependent thresholds instead of the global ``tau_y``.
 
-    ext_D : bool, default=False
-        If True, also construct the extended dataset ``D_prime``.
+        ext_D : bool, default=False
+            If True, also construct the extended dataset ``D_prime``.
+
+        metricx:
+            Distance metric to use for nearest-neighbor search on inputs (features). Default is 'minkowski', 
+            results in l2 norm for p=2.
+        px:
+            Power parameter for the Minkowski metric. Default is 2 (Euclidean distance).
+
+        metricy:
+            Distance metric to use for nearest-neighbor search on targets (features). Default is 'minkowski', 
+                    results in l2 norm for p=2.
+        py:
+            Power parameter for the Minkowski metric. Default is 2 (Euclidean distance).
 
     Returns
     -------
@@ -187,7 +211,9 @@ def feasible_sets_features_nn_xy(
 
     nbrs_x = NearestNeighbors(
         n_neighbors=n_neighbors,
-        algorithm="auto"
+        algorithm="auto",
+        metric = metricx,
+        p =px
     )
     nbrs_x.fit(features_x)
 
@@ -204,7 +230,9 @@ def feasible_sets_features_nn_xy(
     
     nbrs_y = NearestNeighbors(
         n_neighbors=n_neighbors,
-        algorithm="auto"
+        algorithm="auto",
+        metric = metricy,
+        p=py
     )
     nbrs_y.fit(features_y)
 
@@ -236,20 +264,11 @@ def feasible_sets_features_nn_xy(
                     D_prime.append((features_x[k], features_y[idx]))
 
 
-        if target_uncertainty is None:
-            local_tau_k = tau_y
-        else:
-            local_tau_k = sigma[k]
-
         for idx, dist in zip(indices_y[k], distances_y[k]):
 
             if target_uncertainty is None:
 
                 threshold = tau_y
-
-            else:
-
-                threshold = max(local_tau_k, sigma[idx])
 
             if dist <= threshold:
 

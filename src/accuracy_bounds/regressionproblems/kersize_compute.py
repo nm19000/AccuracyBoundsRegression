@@ -10,9 +10,11 @@ def compute_kernel_size(feasible_sets, metric="l2", p=2.0):
     feasible_sets : list[np.ndarray]
         feasible_sets[k] contains the feasible set for the target sample k.
     metric : str
-        Metric used to compute the kernel size in the target space.
+        Metric used to compute the kernel size in the target space. This must be the same metric the loss is computed with.
+        For example "l2" for RMSE.
     p : float
-        Power in the kernel size definition.
+        Power in the kernel size definition. This must be the same power the loss is computed with.
+        For example p=2.0 for RMSE.
 
     Returns
     -------
