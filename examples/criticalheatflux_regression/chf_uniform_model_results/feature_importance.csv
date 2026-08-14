@@ -1,0 +1,11 @@
+Model,Feature,Importance
+Random Forest,Diameter,0.12229525533018068
+Random Forest,Length,0.5415832306942848
+Random Forest,Pressure,0.08415673891898595
+Random Forest,MassFlux,0.07422612367308178
+Random Forest,EquilibriumQuality,0.17773865138346676
+Extra Trees,Diameter,0.1265339939789006
+Extra Trees,Length,0.32683164710633483
+Extra Trees,Pressure,0.1653411779999353
+Extra Trees,MassFlux,0.1294972081700249
+Extra Trees,EquilibriumQuality,0.2517959727448043
