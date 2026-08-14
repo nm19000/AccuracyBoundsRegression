@@ -7,30 +7,35 @@ The workflow is designed to be reusable: replace the example dataset or regressi
 
 ## Overview
 
-Given input data X and targets y, the example:
+Given input data x and targets y that are put into one dataset of tuples $$\mathcal{D}_M=\{(x[i],y[i])}_{i=1^M}$$, the example:
 
-1. Generates a clean synthetic regression surface.
-2. Adds optional input and target noise.
-3. Splits the data into training and test sets.
-4. Constructs feasible sets from locally similar observations.
-5. Computes the average kernel size.
-6. Trains several regression models.
-7. Compares model errors with the estimated bounds.
-8. Measures model sensitivity using an empirical Lipschitz estimate.
+1. Generates a noisy synthetic regression surface as targets y form noisy inputs x.
+2. Splits the data into training and test sets.
+3. Constructs feasible sets from locally similar observations.
+4. Computes the average kernel size.
+5. Trains several regression models.
+6. Compares model errors, RMSE, with the estimated bounds on train and test splits.
+7. Measures model instability vs accuracy using an empirical Lipschitz constant estimate.
 
-The kernel-size estimate is based on the target variation among inputs that are considered indistinguishable at the selected resolution:
+The kernel-size is based on the target variation among inputs that are considered indistinguishable at the selected resolution. Additionally, $$K=Kersize(\mathcal D_{M'},2)_K$$ is an estimate of the irreducible error scale associated with ambiguity in the dataset and any subset of it. Optimal regression models satisfy
 
 $$
-\frac{1}{2}K
+\frac{1}{2}Kersize(\mathcal D_{M'_{train}},2)_K
 \leq
-\mathcal L
+RMSE_{train}
 \leq
-K,
-\qquad
-K=Kersize(\mathcal D_{M'},2)_K.
+Kersize(\mathcal D_{M'_{train}},2)_K.
 $$
 
-Here, $$K=Kersize(\mathcal D_{M'},2)_K$$ is an estimate of the irreducible error scale associated with ambiguity in the dataset.
+and 
+
+$$
+\frac{1}{2}Kersize(\mathcal D_{M'_{test}},2)_K
+\leq
+RMSE_{test}
+\leq
+Kersize(\mathcal D_{M'_{test}},2)_K.
+$$
 
 ## Installation
 
@@ -84,7 +89,7 @@ K, M_prime, set_statistics = compute_kernel_size(
 
 The resulting value `K` is the estimated average kernel size. `result["D_prime"]` contains the enlarged dataset generated from the feasible sets.
 
-## What Are `qx` and `tau_y`?
+## What Are `tau_x` and `tau_y`?
 
 The two main resolution parameters are:
 
