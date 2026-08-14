@@ -7,7 +7,7 @@ The workflow is designed to be reusable: replace the example dataset or regressi
 
 ## Overview
 
-Given input data \(X\) and targets \(y\), the example:
+Given input data X and targets y, the example:
 
 1. Generates a clean synthetic regression surface.
 2. Adds optional input and target noise.
@@ -20,7 +20,7 @@ Given input data \(X\) and targets \(y\), the example:
 
 The kernel-size estimate is based on the target variation among inputs that are considered indistinguishable at the selected resolution:
 
-\[
+$$
 \frac{1}{2}K
 \leq
 \mathcal L
@@ -28,9 +28,9 @@ The kernel-size estimate is based on the target variation among inputs that are 
 K,
 \qquad
 K=\operatorname{Kersize}(\mathcal D_{M'},2)_K.
-\]
+$$
 
-Here, \(K\) is an estimate of the irreducible error scale associated with ambiguity in the dataset.
+Here, $$K=\operatorname{Kersize}(\mathcal D_{M'},2)_K$$ is an estimate of the irreducible error scale associated with ambiguity in the dataset.
 
 ## Installation
 
@@ -88,24 +88,24 @@ The resulting value `K` is the estimated average kernel size. `result["D_prime"]
 
 The two main resolution parameters are:
 
-- `qx`: controls the input-space threshold \(\tau_{\mathcal X}\);
-- `tau_y`: specifies the target-space threshold \(\tau_{\mathcal Y}\).
+- `qx`: controls the input-space threshold $$\tau_{X}$$;
+- `tau_y`: specifies the target-space threshold $$\tau_{Y}$$.
 
 They define when observations are treated as locally comparable:
 
-\[
-d_{\mathcal X}(x_i,x_j)
+$$
+d_{X}(x_i,x_j)
 \leq
 \tau_{\mathcal X}
-\]
+$$
 
 or
 
-\[
-d_{\mathcal Y}(y_i,y_j)
+$$
+d_{Y}(y_i,y_j)
 \leq
-\tau_{\mathcal Y}.
-\]
+\tau_{Y}.
+$$
 
 In practical terms:
 
@@ -171,35 +171,35 @@ The selected models are evaluated using:
 
 - training RMSE;
 - test RMSE;
-- RMSE on the enlarged dataset \(D'\);
-- empirical Lipschitz estimate \(\widehat L\).
+- RMSE on the enlarged dataset $$D'$$;
+- empirical Lipschitz estimate $$L$$.
 
 The empirical Lipschitz estimate is calculated as
 
-\[
-\widehat L
+$$
+ L
 =
 \max_{i,j}
 \frac{
-|\hat y_i-\hat y_j|
+|y_i- y_j|
 }{
 \|x_i-x_j\|_2
 }.
-\]
+$$
 
 It is an approximate sensitivity measure based on sampled input pairs, not an exact global Lipschitz constant.
 
 ## Accuracy Regimes
 
-The example demonstrates two model-selection regimes relative to the kernel size \(K\).
+The example demonstrates two model-selection regimes relative to the kernel size $$K$$.
 
 ### High-Accuracy Regime
 
 The `"unstable"` regime selects a model with very low training error:
 
-\[
+$$
 \operatorname{RMSE}_{\mathrm{train}} < 0.4K.
-\]
+$$
 
 This model may fit the observed training data closely but can be more sensitive to small input changes.
 
@@ -207,13 +207,13 @@ This model may fit the observed training data closely but can be more sensitive 
 
 The `"stable"` regime selects a model whose training error lies within a relaxed kernel-size interval:
 
-\[
+$$
 0.8K
 \leq
 \operatorname{RMSE}_{\mathrm{train}}
 \leq
 K.
-\]
+$$
 
 Among models in this interval, the model with the smallest empirical Lipschitz estimate is selected.
 
@@ -277,9 +277,9 @@ Models with a `^o` suffix, such as `GP^o`, use the high-accuracy regime. Unsuffi
 
 The kernel size is a dataset-level estimate, not a guarantee that every model's error will fall exactly inside the interval
 
-\[
-[K/2,K].
-\]
+$$
+[K/2,K]= [\operatorname{Kersize}(\mathcal D_{M'},2)_K/2,\operatorname{Kersize}(\mathcal D_{M'},2)_K]
+$$
 
 Observed errors can differ because of:
 
