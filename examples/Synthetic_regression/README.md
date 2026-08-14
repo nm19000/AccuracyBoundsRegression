@@ -37,7 +37,9 @@ RMSE_{test}
 Kersize(\mathcal D_{M'_{test}},2)_K.
 $$
 
-Where $M' ge M$. If there is no distribution shift or change in noise levels $$ Kersize(\mathcal D_{M'_{train}},2)_K \approx Kersize(\mathcal D_{M'_{test}},2)_K$$.
+Where $$M' \ge M$$. If there is no distribution shift or change in noise levels 
+
+$$ Kersize(\mathcal D_{M'_{train}},2)_K \simeq Kersize(\mathcal D_{M'_{test}},2)_K$$
 
 ## Installation
 
