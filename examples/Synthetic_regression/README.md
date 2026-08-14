@@ -7,7 +7,7 @@ The workflow is designed to be reusable: replace the example dataset or regressi
 
 ## Overview
 
-Given input data x and targets y that are put into one dataset of tuples $$\mathcal{D}_M= {(x[i],y[i])}_{i=1}^{M}$$, the example:
+Given input data x and targets y that are put into one dataset of tuples $$\mathcal D_{M}= {(x[i],y[i])}_{i=1}^{M}$$, the example:
 
 1. Generates a noisy synthetic regression surface as targets y form noisy inputs x.
 2. Splits the data into training and test sets.
