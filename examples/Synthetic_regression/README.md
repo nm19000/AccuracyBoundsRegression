@@ -7,7 +7,7 @@ The workflow is designed to be reusable: replace the example dataset or regressi
 
 ## Overview
 
-Given input data x and targets y that are put into one dataset of tuples $$\mathcal{D}_M=\{(x[i],y[i])}_{i=1^M}$$, the example:
+Given input data x and targets y that are put into one dataset of tuples $$\mathcal{D}_M={(x[i],y[i])}_{i=1^M}$$, the example:
 
 1. Generates a noisy synthetic regression surface as targets y form noisy inputs x.
 2. Splits the data into training and test sets.
@@ -36,6 +36,8 @@ RMSE_{test}
 \leq
 Kersize(\mathcal D_{M'_{test}},2)_K.
 $$
+
+Where $M' ge M$. If there is no distribution shift or change in noise levels $$ Kersize(\mathcal D_{M'_{train}},2)_K \approx Kersize(\mathcal D_{M'_{test}},2)_K$$.
 
 ## Installation
 
@@ -82,18 +84,18 @@ result = feasible_sets_features_nn_xy(
     ext_D=True,
 )
 
-K, M_prime, set_statistics = compute_kernel_size(
+Kersize, M_prime, set_statistics = compute_kernel_size(
     result["feasible_sets"]
 )
 ```
 
-The resulting value `K` is the estimated average kernel size. `result["D_prime"]` contains the enlarged dataset generated from the feasible sets.
+The resulting value `Kersize` is the estimated average kernel size. `result["D_prime"]` contains the enlarged dataset generated from the feasible sets containing $$M'$$ samples.
 
 ## What Are `tau_x` and `tau_y`?
 
 The two main resolution parameters are:
 
-- `qx`: controls the input-space threshold $$\tau_{X}$$;
+- `tau_x`: controls the input-space threshold $$\tau_{X}$$, if input noise is unkown do an ablation over `qx` in $$[0.01,0.1]$$ as in the UCI regression examples;
 - `tau_y`: specifies the target-space threshold $$\tau_{Y}$$.
 
 They define when observations are treated as locally comparable:
@@ -114,7 +116,7 @@ $$
 
 In practical terms:
 
-- `qx` controls how far apart inputs may be while still being considered similar;
+- `tau_x` controls how far apart inputs may be while still being considered similar;
 - `tau_y` controls how close target values must be to satisfy the target-space criterion.
 
 These are not model hyperparameters. They define the resolution at which ambiguity is measured. Their values should reflect the scale and noise level of the application.
@@ -126,7 +128,7 @@ result = feasible_sets_features_nn_xy(
     X,
     y.reshape(-1, 1),
     N_max=300,
-    qx=0.05,
+    tau_x=0.01,
     tau_y=0.03,
     ext_D=True,
 )
@@ -181,16 +183,7 @@ The selected models are evaluated using:
 
 The empirical Lipschitz estimate is calculated as
 
-$$
- L
-=
-\max_{i,j}
-\frac{
-|y_i- y_j|
-}{
-\|x_i-x_j\|_2
-}.
-$$
+$$ L=\max_{i,j}\frac{|y_i- y_j|}{\|x_i-x_j\|_2}.$$
 
 It is an approximate sensitivity measure based on sampled input pairs, not an exact global Lipschitz constant.
 
@@ -213,11 +206,11 @@ This model may fit the observed training data closely but can be more sensitive 
 The `"stable"` regime selects a model whose training error lies within a relaxed kernel-size interval:
 
 $$
-0.8K
+0.8 Kersize(\mathcal D_{M'_{train}},2)_K
 \leq
 RMSE_{\mathrm{train}}
 \leq
-K.
+Kersize(\mathcal D_{M'_{train}},2)_K.
 $$
 
 Among models in this interval, the model with the smallest empirical Lipschitz estimate is selected.
