@@ -27,10 +27,10 @@ $$
 \leq
 K,
 \qquad
-K=\operatorname{Kersize}(\mathcal D_{M'},2)_K.
+K=Kersize(\mathcal D_{M'},2)_K.
 $$
 
-Here, $$K=\operatorname{Kersize}(\mathcal D_{M'},2)_K$$ is an estimate of the irreducible error scale associated with ambiguity in the dataset.
+Here, $$K=Kersize(\mathcal D_{M'},2)_K$$ is an estimate of the irreducible error scale associated with ambiguity in the dataset.
 
 ## Installation
 
@@ -198,7 +198,7 @@ The example demonstrates two model-selection regimes relative to the kernel size
 The `"unstable"` regime selects a model with very low training error:
 
 $$
-\operatorname{RMSE}_{\mathrm{train}} < 0.4K.
+RMSE_{\mathrm{train}} < 0.4K.
 $$
 
 This model may fit the observed training data closely but can be more sensitive to small input changes.
@@ -210,7 +210,7 @@ The `"stable"` regime selects a model whose training error lies within a relaxed
 $$
 0.8K
 \leq
-\operatorname{RMSE}_{\mathrm{train}}
+RMSE_{\mathrm{train}}
 \leq
 K.
 $$
@@ -278,7 +278,7 @@ Models with a `^o` suffix, such as `GP^o`, use the high-accuracy regime. Unsuffi
 The kernel size is a dataset-level estimate, not a guarantee that every model's error will fall exactly inside the interval
 
 $$
-[K/2,K]= [\operatorname{Kersize}(\mathcal D_{M'},2)_K/2,\operatorname{Kersize}(\mathcal D_{M'},2)_K]
+[K/2,K]= [Kersize(\mathcal D_{M'},2)_K/2,Kersize(\mathcal D_{M'},2)_K]
 $$
 
 Observed errors can differ because of:
