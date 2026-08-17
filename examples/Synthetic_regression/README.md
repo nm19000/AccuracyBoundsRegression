@@ -10,7 +10,7 @@ The workflow is designed to be reusable: replace the example dataset or regressi
 Given input data x and targets y that are put into one dataset of tuples $$\mathcal D_{M}= {(x[i],y[i])}_{i=1}^{M}$$, the example:
 
 1. Generates a noisy synthetic regression surface as targets y form noisy inputs x.
-2. Splits the data into training and test sets.
+2. Splits the data into training and test sets, $$\mathcal D_{M_{train}}$$ and $$\mathcal D_{M_{test}}$$.
 3. Constructs feasible sets from locally similar observations.
 4. Computes the average kernel size.
 5. Trains several regression models.
@@ -39,7 +39,7 @@ $$
 
 Where $$M' \ge M$$. If there is no distribution shift or change in noise levels 
 
-$$ Kersize(\mathcal D_{M'_{train}},2)_K \simeq Kersize(\mathcal D_{M'_{test}},2)_K$$
+$$ Kersize(\mathcal D_{M'_{train}},2)_K \simeq Kersize(\mathcal D_{M'_{test}},2)_K.$$
 
 ## Installation
 
@@ -97,8 +97,8 @@ The resulting value `Kersize` is the estimated average kernel size. `result["D_p
 
 The two main resolution parameters are:
 
-- `tau_x`: controls the input-space threshold $$\tau_{X}$$, if input noise is unkown do an ablation over `qx` in $$[0.01,0.1]$$ as in the UCI regression examples;
-- `tau_y`: specifies the target-space threshold $$\tau_{Y}$$.
+- `tau_x`: controls the input-space threshold $$\tau_{X}$$ and is set to the distance of worst-case noise on inputs, if input noise is unkown do an ablation over `qx` in $$[0.01,0.1]$$ as in the UCI regression examples;
+- `tau_y`: specifies the target-space threshold $$\tau_{Y}$$ and is set to the distance of worst-case noise on targets.
 
 They define when observations are treated as locally comparable:
 
@@ -118,10 +118,10 @@ $$
 
 In practical terms:
 
-- `tau_x` controls how far apart inputs may be while still being considered similar;
-- `tau_y` controls how close target values must be to satisfy the target-space criterion.
+- `tau_x` controls how far apart inputs may be while still being considered similar; i.e. in the synthetic regression example the input noise threshold is $0.014$.
+- `tau_y` controls how close target values must be to satisfy the target-space criterion; i.e. in the synthetic regression example the input noise threshold is $0.03$.
 
-These are not model hyperparameters. They define the resolution at which ambiguity is measured. Their values should reflect the scale and noise level of the application.
+These are not model hyperparameters. They define the resolution at which ambiguity is measured and can be chosen to be the worst-case measurement error. Their values should reflect the scale and noise level of the application.
 
 For example:
 
@@ -130,7 +130,7 @@ result = feasible_sets_features_nn_xy(
     X,
     y.reshape(-1, 1),
     N_max=300,
-    tau_x=0.01,
+    tau_x=0.014,
     tau_y=0.03,
     ext_D=True,
 )
