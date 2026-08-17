@@ -73,14 +73,14 @@ def generate_dataset(
 # Kernel size computation
 # ==========================================================
 
-def compute_statistics(X, y, q, N_max=300):
+def compute_statistics(X, y, tau_x=0.014, tau_y=0.03,N_max=300):
 
     result = feasible_sets_features_nn_xy(
         X,
         y.reshape(-1,1),
         N_max=N_max,
-        qx=q,
-        tau_y=0.03,
+        tau_x=tau_x,
+        tau_y=tau_y,
         ext_D=False,
     )
 
@@ -97,26 +97,29 @@ def compute_statistics(X, y, q, N_max=300):
 # ==========================================================
 
 def run_experiment(
-        q,
         X_train,
         X_test,
         y_train,
         y_test,
+        tau_x=0.014,
+        tau_y=0.03,
         N_max=300):
 
 
     K_train, train_result, M_prime_train, Nk_stats_train = compute_statistics(
         X_train,
         y_train,
-        q,
-        N_max=N_max
+        N_max=N_max,
+        tau_x=0.014,
+        tau_y=0.03,
     )
 
     K_test, test_result, M_prime_test, Nk_stats_test = compute_statistics(
             X_test,
             y_test,
-            q,
-            N_max=N_max
+            N_max=N_max,
+            tau_x=0.014,
+            tau_y=0.03,
         )
 
 
@@ -125,15 +128,7 @@ def run_experiment(
 
     rows.append({
 
-            "q":q,
-
             "N_max":N_max,
-
-            "tau_x train":
-            train_result["tau_x"],
-
-            "tau_x test":
-            test_result["tau_x"],
 
             "M_prime_train":
             M_prime_train, 
@@ -189,33 +184,23 @@ def main():
         random_state=42
     )
 
-
-    qs=[
-        0.01,
-        0.05,
-        0.08,
-        0.10,
-        0.15,
-        0.20
-    ]
-
     N_max=[10,20,30,40,50,100,200,300,450]
 
     results=[]
 
-    q=0.1
 
     #for q in qs:
     for N_max in N_max:
 
         results.extend(
             run_experiment(
-                q,
                 X_train,
                 X_test,
                 y_train,
                 y_test,
-                N_max=N_max
+                N_max=N_max,
+                tau_x=0.014,
+                tau_y=0.03,
             )
         )
 
@@ -227,9 +212,6 @@ def main():
     round_cols = [
         "Kernel train",
         "Kernel test",
-        "q",
-        "tau_x train",
-        "tau_x test"
     ]
 
     df[round_cols] = df[round_cols].round(6)
