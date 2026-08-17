@@ -158,7 +158,7 @@ When using the feasible-set functions, ensure that the distance calculation is a
 
 Target scaling should be considered separately. If `y` is rescaled, `tau_y`, kernel sizes, and RMSE values are rescaled as well.
 
-## Models
+## Models $$\phi$$
 
 The example compares three model families:
 
@@ -180,12 +180,12 @@ The selected models are evaluated using:
 
 - training RMSE;
 - test RMSE;
-- RMSE on the enlarged dataset $$D'$$;
+- RMSE on the enlarged dataset $$\mathcal D'$$;
 - empirical Lipschitz estimate $$L$$.
 
-The empirical Lipschitz estimate is calculated as
+The empirical Lipschitz estimate of a regressor $$\phi$$ is calculated as
 
-$$ L=\max_{i,j}\frac{|y_i- y_j|}{\|x_i-x_j\|_2}.$$
+$$ L=\max_{i,j}\frac{\|\phi(x_i)- \phi(x_j)\|_2}{\|x_i-x_j\|_2}.$$
 
 It is an approximate sensitivity measure based on sampled input pairs, not an exact global Lipschitz constant.
 
@@ -198,7 +198,7 @@ The example demonstrates two model-selection regimes relative to the kernel size
 The `"unstable"` regime selects a model with very low training error:
 
 $$
-RMSE_{\mathrm{train}} < 0.4K.
+RMSE_{\mathrm{train}} < 0.4  Kersize(\mathcal D_{M'_{train}},2)_K.
 $$
 
 This model may fit the observed training data closely but can be more sensitive to small input changes.
@@ -221,17 +221,40 @@ These regimes are illustrative selection rules, not requirements of the package.
 
 ## Using Your Own Dataset
 
-Replace the synthetic data-generation step with your own data:
+Replace the synthetic data-generation step with your own data. First choose `tau_x` and `tau_y`:
+
+- `tau_x`: controls the input-space threshold $$\tau_{X}$$ and is set to the distance of worst-case noise on inputs, if input noise is unkown do an ablation over `qx` in $$[0.01,0.1]$$ as in the UCI regression examples; if you have no noise let `tau_x=0.0`
+- `tau_y`: specifies the target-space threshold $$\tau_{Y}$$ and is set to the distance of worst-case noise on targets. 
 
 ```python
 X = your_features
 y = your_targets
 
-K, result, M_prime, statistics = compute_statistics(
+Kersize, result, M_prime, statistics = compute_statistics(
     X,
     y,
-    q=0.05,
+    N_max,
+    tau_x,
+    tau_y
 )
+```
+Check convergence over increasing $$N_{max}$$:
+
+```python
+kersize_list =[]
+tau_x_list = []
+y_trainf = np.asarray(y_train).reshape(-1, 1)
+
+for N_max in [10,20,30,40,50,100,200,300,450]:
+    Kersize, result, M_prime, statistics = compute_statistics(
+        X,
+        y,
+        N_max,
+        tau_x,
+        tau_y
+        )
+    kersize_list.append(Kersize)
+    tau_x_list.append(result["tau_x"])
 ```
 
 Then train any regression model using the same training data and compare its predictions with:
@@ -245,11 +268,11 @@ A typical application workflow is:
 
 ```python
 # 1. Prepare and scale X if necessary
-# 2. Compute feasible sets and K
+# 2. Choose `tau_x` and `tau_y` and compute feasible sets and Kersize
 # 3. Train a regression model
 # 4. Evaluate train and test RMSE
-# 5. Compare the observed errors with K/2 and K
-# 6. Optionally evaluate on result["D_prime"]
+# 5. Compare the observed errors with Kersize/2 and Kersize
+# 6. Optionally evaluate regressors RMSE on result["D_prime"]
 ```
 
 The package does not require a particular regression algorithm.
@@ -260,7 +283,7 @@ The generated CSV contains, among other fields:
 
 | Column | Description |
 |---|---|
-| `q` | Input-distance quantile |
+| `qx` | Input-distance quantile |
 | `tau_x train` | Training input threshold |
 | `tau_x test` | Test input threshold |
 | `Kernel train` | Training average kernel size |
@@ -278,7 +301,7 @@ Models with a `^o` suffix, such as `GP^o`, use the high-accuracy regime. Unsuffi
 The kernel size is a dataset-level estimate, not a guarantee that every model's error will fall exactly inside the interval
 
 $$
-[K/2,K]= [Kersize(\mathcal D_{M'},2)_K/2,Kersize(\mathcal D_{M'},2)_K]
+[Kersize(\mathcal D_{M'},2)_K/2,Kersize(\mathcal D_{M'},2)_K]
 $$
 
 Observed errors can differ because of:
@@ -289,7 +312,7 @@ Observed errors can differ because of:
 - train/test splitting;
 - differences between the original dataset and the enlarged dataset \(D'\);
 - the selected input and target metrics;
-- the values of `qx` and `tau_y`.
+- the values of `tau_x`, or `qx`, and `tau_y`.
 
 The purpose of the comparison is to assess whether model performance is consistent with the ambiguity measured in the data, and to illustrate the tradeoff between low training error and prediction stability.
 
@@ -297,7 +320,7 @@ The purpose of the comparison is to assess whether model performance is consiste
 
 The example fixes NumPy's random seed to `42`. Results may still vary with different versions of NumPy, pandas, or scikit-learn.
 
-The kernel-size estimate depends on the chosen metrics, thresholds, and sampling limits. Therefore, `qx`, `tau_y`, and `N_max` should be documented and justified for each application rather than copied unchanged from this example.
+The kernel-size estimate depends on the chosen metrics, thresholds, and sampling limits. Therefore, `tau_x`, or `qx`, `tau_y`, and `N_max` should be documented and justified for each application rather than copied unchanged from this example.
 
                         
                         
