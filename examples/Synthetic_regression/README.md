@@ -81,7 +81,7 @@ result = feasible_sets_features_nn_xy(
     X,
     y.reshape(-1, 1),
     N_max=300,
-    qx=0.05,
+    tau_x=0.014,
     tau_y=0.03,
     ext_D=True,
 )
@@ -118,8 +118,8 @@ $$
 
 In practical terms:
 
-- `tau_x` controls how far apart inputs may be while still being considered similar; i.e. in the synthetic regression example the input noise threshold is $0.014$.
-- `tau_y` controls how close target values must be to satisfy the target-space criterion; i.e. in the synthetic regression example the input noise threshold is $0.03$.
+- `tau_x` controls how far apart inputs may be while still being considered similar; i.e. in the synthetic regression example the input noise threshold is $0.014$, as the input data is corrupted with additive noise $$U([0,0.01]\times [0,0.01])$$.
+- `tau_y` controls how close target values must be to satisfy the target-space criterion; i.e. in the synthetic regression example the input noise threshold is $0.03$, as the target data is corrupted with additive noise $$U([0,0.03])$$
 
 These are not model hyperparameters. They define the resolution at which ambiguity is measured and can be chosen to be the worst-case measurement error. Their values should reflect the scale and noise level of the application.
 
@@ -238,7 +238,7 @@ Kersize, result, M_prime, statistics = compute_statistics(
     tau_y
 )
 ```
-Check convergence over increasing $$N_{max}$$:
+Check convergence of the average kernel size over increasing $$N_{max}$$:
 
 ```python
 kersize_list =[]
