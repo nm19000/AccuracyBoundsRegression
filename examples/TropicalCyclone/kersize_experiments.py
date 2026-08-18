@@ -25,7 +25,7 @@ test_images = []
 test_labels = []
 
 # small test subset
-N = 1000
+N = 10
 
 count = 0
 
@@ -104,7 +104,7 @@ M_prime_list = []
 Nk_stats_list = []
 tau_x_list = []
 
-for N_max in [10,20,30,40,50,100,200,300,450]:
+for N_max in [10]:
 
     result = feasible_sets_features_nn_xy(
         features,
