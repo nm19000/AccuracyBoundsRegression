@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 
-from sklearn.metrics import pairwise_distances
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
@@ -73,14 +72,14 @@ def generate_dataset(
 # Kernel size computation
 # ==========================================================
 
-def compute_statistics(X, y, q):
+def compute_statistics(X, y, tau_x, tau_y):
 
     result = feasible_sets_features_nn_xy(
         X,
         y.reshape(-1,1),
         N_max=300,
-        qx=q,
-        tau_y=0.03,
+        tau_x=tau_x, 
+        tau_y=tau_y,
         ext_D=True,
     )
 
@@ -360,7 +359,7 @@ def train_to_target(
         elif mode=="stable":
 
             if (
-                0.8*K <= train_error <= K
+                0.5*K <= train_error <= K
             ):
 
                 # choose smoothest model
@@ -443,24 +442,27 @@ def train_to_target(
 # ==========================================================
 
 def run_experiment(
-        q,
         X_train,
         X_test,
         y_train,
         y_test,
-        X_lip):
+        X_lip,
+        tau_x=0.014, 
+        tau_y=0.03):
 
 
     K_train, train_result, M_prime_train, Nk_stats_train = compute_statistics(
         X_train,
         y_train,
-        q
+        tau_x=tau_x,
+        tau_y=tau_y,
     )
 
     K_test, test_result, M_prime_test, Nk_stats_test = compute_statistics(
             X_test,
             y_test,
-            q
+            tau_x=tau_x,
+            tau_y=tau_y
         )
 
 
@@ -492,7 +494,7 @@ def run_experiment(
 
 
         print(
-            f"q={q}, training {name}"
+            f"training {name}"
         )
 
 
@@ -523,14 +525,6 @@ def run_experiment(
 
 
         rows.append({
-
-            "q":q,
-
-            "tau_x train":
-            train_result["tau_x"],
-
-            "tau_x test":
-            test_result["tau_x"],
 
             "M_prime_train":
             M_prime_train, 
@@ -595,14 +589,6 @@ def run_experiment(
 
 
         rows.append({
-
-            "q":q,
-
-            "tau_x train":
-            train_result["tau_x"],
-            
-            "tau_x test":
-            test_result["tau_x"],
             
             "M_prime_train":
             M_prime_train, 
@@ -686,31 +672,17 @@ def main():
     )
 
 
-
-    qs=[
-        0.01,
-        0.05,
-        0.08,
-        0.10,
-        0.15,
-        0.20
-    ]
-
-
-
     results=[]
 
-
-    for q in qs:
-
-        results.extend(
-            run_experiment(
-                q,
+    results.extend(
+        run_experiment(
                 X_train,
                 X_test,
                 y_train,
                 y_test,
-                X_lip
+                X_lip,
+                tau_x=0.014, 
+                tau_y=0.03,
             )
         )
 
