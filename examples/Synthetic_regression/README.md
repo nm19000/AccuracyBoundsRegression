@@ -205,10 +205,10 @@ This model may fit the observed training data closely but can be more sensitive 
 
 ### Stable Regime
 
-The `"stable"` regime selects a model whose training error lies within a relaxed kernel-size interval:
+The `"stable"` regime selects a model whose training error lies within a the optimal accuracy interval given by the average kernel-size on the training set:
 
 $$
-0.8 Kersize(\mathcal D_{M'_{train}},2)_K
+\frac{1}{2} Kersize(\mathcal D_{M'_{train}},2)_K
 \leq
 RMSE_{\mathrm{train}}
 \leq
