@@ -116,9 +116,9 @@ TARGET = "HeatFlux"
 
 RELATIVE_INPUT_UNCERTAINTIES = {
 
-    "Diameter": 0.00,       # ±1.0 %
+    "Diameter": 0.01,       # ±1.0 %
 
-    "Length": 0.00,         # ±1.0 %
+    "Length": 0.01,         # ±1.0 %
 
     "Pressure": 0.005,       # ±0.5 %
 

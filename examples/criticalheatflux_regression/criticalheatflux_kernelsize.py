@@ -59,18 +59,6 @@ TARGET_COL = "HeatFlux"
 
 LOG_TARGET = False
 
-# ----------------------------------------------------------
-# q configuration
-# ----------------------------------------------------------
-#
-# q remains an input to feasible_sets_features_nn_xy().
-# It is not called FIXED_Q.
-#
-# Change this value if you want to evaluate a different
-# q value.
-# ----------------------------------------------------------
-
-Q_VALUE = 0.05
 
 # ----------------------------------------------------------
 # Feature-side uncertainty threshold
@@ -738,7 +726,6 @@ def load_chf_uniform_dataset(
 def call_feasible_sets_features_nn_xy(
     X,
     y,
-    q,
     N_max,
     tau_x_value,
     target_uncertainty=chf_uncertainty,
@@ -781,30 +768,6 @@ def call_feasible_sets_features_nn_xy(
             )
 
         # --------------------------------------------------
-        # Feature-side q
-        # --------------------------------------------------
-
-        if "qx" in parameters:
-
-            kwargs["qx"] = q
-
-        elif "q_x" in parameters:
-
-            kwargs["q_x"] = q
-
-        elif "q" in parameters:
-
-            kwargs["q"] = q
-
-        else:
-
-            raise TypeError(
-                "feasible_sets_features_nn_xy() "
-                "does not appear to accept "
-                "q/qx/q_x."
-            )
-
-        # --------------------------------------------------
         # Target uncertainty
         # --------------------------------------------------
 
@@ -843,10 +806,6 @@ def call_feasible_sets_features_nn_xy(
             f"{N_max}"
         )
 
-        print(
-            f"    q     = "
-            f"{q:.6f}"
-        )
 
         print(
             f"    tau_x = "
@@ -972,7 +931,6 @@ def extract_kernel_statistics(
 def compute_statistics_chf(
     X,
     y,
-    q,
     N_max,
     tau_x_value,
 ):
@@ -985,7 +943,6 @@ def compute_statistics_chf(
         call_feasible_sets_features_nn_xy(
             X=X,
             y=y,
-            q=q,
             tau_x_value=tau_x_value,
             N_max=N_max,
             target_uncertainty=chf_uncertainty,
@@ -1101,7 +1058,6 @@ def compute_statistics_chf(
         tau_y = np.nan
 
     return {
-        "q": float(q),
 
         "N_max": int(
             N_max
@@ -1170,7 +1126,6 @@ def compute_statistics_chf(
 def run_nmax_ablation(
     X,
     y,
-    q,
     tau_x_value,
     nmax_grid,
 ):
@@ -1180,7 +1135,6 @@ def run_nmax_ablation(
 
     rows = []
 
-    q = float(q)
     tau_x_value = float(tau_x_value)
 
     print("\n" + "=" * 70)
@@ -1189,10 +1143,6 @@ def run_nmax_ablation(
     )
     print("=" * 70)
 
-    print(
-        f"q = "
-        f"{q:.6f}"
-    )
 
     print(
         f"tau_x = "
@@ -1207,7 +1157,6 @@ def run_nmax_ablation(
     for N_max in nmax_grid:
 
         print(
-            f"\n    q={q:.6f}, "
             f"tau_x={tau_x_value:.6f}, "
             f"N_max={N_max}"
         )
@@ -1216,7 +1165,6 @@ def run_nmax_ablation(
             compute_statistics_chf(
                 X=X,
                 y=y,
-                q=q,
                 tau_x_value=tau_x_value,
                 N_max=N_max,
             )
@@ -1272,12 +1220,6 @@ def compute_nmax_saturation(
         ].iloc[0]
     )
 
-    q_value = float(
-        reference_rows[
-            "q"
-        ].iloc[0]
-    )
-
     tau_x_value = float(
         reference_rows[
             "tau_x_configured"
@@ -1308,8 +1250,6 @@ def compute_nmax_saturation(
 
         rows.append(
             {
-                "q":
-                    q_value,
 
                 "tau_x":
                     tau_x_value,
@@ -1365,9 +1305,6 @@ def plot_kernel_size_vs_nmax(
         "N_max"
     )
 
-    q_value = float(
-        g["q"].iloc[0]
-    )
 
     tau_x_value = float(
         g["tau_x_configured"].iloc[0]
@@ -1410,7 +1347,6 @@ def plot_kernel_size_vs_nmax(
     plt.title(
         "Uniform CHF Dataset: "
         "Kernel Size vs N_max "
-        f"at q={q_value:.2f}, "
         f"tau_x={tau_x_value:.6f}",
         fontsize=13,
     )
@@ -1460,9 +1396,6 @@ def plot_nmax_saturation(
         "N_max"
     )
 
-    q_value = float(
-        g["q"].iloc[0]
-    )
 
     tau_x_value = float(
         g["tau_x"].iloc[0]
@@ -1507,7 +1440,6 @@ def plot_nmax_saturation(
     plt.title(
         "Uniform CHF Dataset: "
         "N_max Saturation "
-        f"at q={q_value:.2f}, "
         f"tau_x={tau_x_value:.6f}",
         fontsize=13,
     )
@@ -1614,10 +1546,6 @@ def main():
         "\n    d_Y(y_k,y_j) <= tau_y"
     )
 
-    print(
-        f"\nq = "
-        f"{Q_VALUE:.6f}"
-    )
 
     print(
         f"tau_x = "
@@ -1681,9 +1609,6 @@ def main():
     # q / tau_x CONFIGURATION
     # ======================================================
 
-    q_value = float(
-        Q_VALUE
-    )
 
     tau_x_value = float(
         TAU_X
@@ -1701,10 +1626,6 @@ def main():
         "=" * 70
     )
 
-    print(
-        f"q = "
-        f"{q_value:.6f}"
-    )
 
     print(
         f"tau_x = "
@@ -1723,7 +1644,6 @@ def main():
     nmax_results = run_nmax_ablation(
         X=X,
         y=y,
-        q=q_value,
         tau_x_value=tau_x_value,
         nmax_grid=NMAX_GRID,
     )
@@ -1808,11 +1728,6 @@ def main():
 
     print(
         "=" * 70
-    )
-
-    print(
-        f"q = "
-        f"{q_value:.6f}"
     )
 
     print(
@@ -1904,10 +1819,6 @@ def main():
         "=" * 70
     )
 
-    print(
-        f"q: "
-        f"{q_value:.6f}"
-    )
 
     print(
         f"tau_x: "
@@ -1940,11 +1851,6 @@ def main():
 
     print(
         "\nFinal configuration:"
-    )
-
-    print(
-        f"    Uniform CHF: "
-        f"q={q_value:.6f}"
     )
 
     print(
