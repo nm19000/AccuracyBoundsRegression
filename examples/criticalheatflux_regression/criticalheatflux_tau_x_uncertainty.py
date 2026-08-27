@@ -762,14 +762,6 @@ def main():
         f"  tau_x = {tau_x:.6f}"
     )
 
-    print(
-        "\nExpected value for the current dataset:"
-    )
-
-    print(
-        "  approximately 0.171840"
-    )
-
     # ========================================================
     # FEATURE CONTRIBUTIONS
     # ========================================================
