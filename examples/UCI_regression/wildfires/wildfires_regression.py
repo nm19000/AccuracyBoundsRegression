@@ -85,7 +85,7 @@ def load_forest_fires_data(
 # Kernel size computation
 # ==========================================================
 
-def compute_statistics_input_only(X, y, q, N_max=300):
+def compute_statistics_input_only(X, y, q, px=1, N_max=300):
     """
     Feasible sets based only on input-space proximity.
     """
@@ -95,6 +95,7 @@ def compute_statistics_input_only(X, y, q, N_max=300):
         N_max=N_max,
         qx=q,
         ext_D=False,
+        px=px
     )
 
     ksize, M_prime, Nk_stats = compute_kernel_size(
@@ -105,7 +106,7 @@ def compute_statistics_input_only(X, y, q, N_max=300):
 
     return ksize, result, M_prime, Nk_stats
 
-def compute_statistics_union(X, y, qx, qy=0.05, N_max=300):
+def compute_statistics_union(X, y, qx, qy=0.2, px=1, N_max=300):
     """
     Feasible sets based on input-space OR target-space proximity.
     """
@@ -116,6 +117,7 @@ def compute_statistics_union(X, y, qx, qy=0.05, N_max=300):
         qx=qx,
         qy=qy,
         ext_D=False,
+        px=px
     )
 
     ksize, M_prime, Nk_stats = compute_kernel_size(
@@ -230,8 +232,8 @@ def main():
                 y_train,
                 y_test,
                 mode="union",
-                qy=0.1,
-                N_max=300,
+                qy=0.2,
+                N_max=400,
             )
         )
 
