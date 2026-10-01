@@ -60,7 +60,7 @@ def feasible_sets_features_nnx(
 
     nbrs_x = NearestNeighbors(
         n_neighbors=n_neighbors,
-        algorithm="auto",
+        algorithm="brute",
         metric=metricx, 
         p=px
     )
@@ -107,7 +107,7 @@ def feasible_sets_features_nn_xy(
     features_x,
     features_y,
     N_max=50,
-    qx=0.05,
+    qx=0.1,
     qy=0.05,
     tau_x=0.0,
     tau_y=0.0,
@@ -116,7 +116,7 @@ def feasible_sets_features_nn_xy(
     metricx='minkowski',
     px=2,
     metricy='minkowski',
-    py=2
+    py=2,
         ):
     """ Construct feasible sets using nearest neighbors in both input and target spaces. 
     For each sample ``(x_k, y_k)``, the feasible set consists of target values
@@ -211,7 +211,7 @@ def feasible_sets_features_nn_xy(
 
     nbrs_x = NearestNeighbors(
         n_neighbors=n_neighbors,
-        algorithm="auto",
+        algorithm="brute",
         metric = metricx,
         p =px
     )
