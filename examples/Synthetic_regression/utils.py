@@ -32,40 +32,9 @@ def sin_sqrt_surface_from_meshgrid(X: np.array, Y: np.array, output_noise: float
 
     return F_noisy
 
-def generate_dataset(
-        bounds,
-        n_sqrt_mesh,
-        input_noise,
-        output_noise):
-
-    x = np.linspace(-bounds, bounds, n_sqrt_mesh)
-    y = np.linspace(-bounds, bounds, n_sqrt_mesh)
-
-    X1, X2 = np.meshgrid(x, y)
-
-    X = np.column_stack([
-        X1.ravel(),
-        X2.ravel()
-    ])
-
-    # U([0,noise])
-    X += np.random.uniform(
-        0,
-        input_noise,
-        size=X.shape
-    )
-
-    R = np.sqrt(
-        X[:,0]**2 +
-        X[:,1]**2
-    )
-
-    y = np.sin(1 + 0.9*R)
-
-    y += np.random.uniform(
-        0,
-        output_noise,
-        size=y.shape
-    )
-
-    return X, y
+def compute_R_squared(feasible_sets):
+    """ Compute the R-squared value for a collection of feasible sets. Which is the optimal RMSE, only on D_prime and for the l2 norm."""
+    return sum(
+        np.sum((Y - Y.mean(axis=0))**2)
+        for Y in feasible_sets if len(Y)
+    ) / sum(len(Y) for Y in feasible_sets)
