@@ -38,3 +38,10 @@ def chf_uncertainty(q):
         sigma_floor**2
         + (relative_error * np.abs(q))**2
     )
+
+def compute_R_squared(feasible_sets):
+    """ Compute the R-squared value for a collection of feasible sets. Which is the optimal RMSE, only on D_prime and for the l2 norm."""
+    return sum(
+        np.sum((Y - Y.mean(axis=0))**2)
+        for Y in feasible_sets if len(Y)
+    ) / sum(len(Y) for Y in feasible_sets)

@@ -13,7 +13,7 @@ from accuracy_bounds.regressionproblems.feasible_sets import (
 from accuracy_bounds.regressionproblems.kersize_compute import (
     compute_kernel_size,
 )
-from utils import chf_uncertainty
+from utils import chf_uncertainty, compute_R_squared
 
 
 # ==========================================================
@@ -397,17 +397,6 @@ def compute_statistics_chf(
         dtype=int,
     )
 
-    truncation_limit = min(
-        N_max + 1,
-        len(y),
-    )
-
-    fraction_at_Nmax = float(
-        np.mean(
-            feasible_sizes >= truncation_limit
-        )
-    )
-
     return {
         "N_max": int(N_max),
 
@@ -459,7 +448,11 @@ def compute_statistics_chf(
             "max_feasible_set_size"
         ],
 
-        "fraction_at_Nmax": fraction_at_Nmax,
+        "R": float(np.sqrt(
+            compute_R_squared(
+                feasible_sets
+            )
+        )),
     }
 
 
@@ -467,7 +460,7 @@ def compute_statistics_chf(
 # N_MAX ABLATION
 # ==========================================================
 
-def run_nmax_ablation(
+def run_nmax_kersize_ablation(
     X,
     y,
     tau_x,
@@ -533,14 +526,14 @@ def main():
     # N_max ablation
     # ------------------------------------------------------
 
-    nmax_results = run_nmax_ablation(
+    nmax_kersize_results = run_nmax_kersize_ablation(
         X,
         y,
         TAU_X,
         NMAX_GRID,
     ).round(6)
 
-    nmax_results.to_csv(
+    nmax_kersize_results.to_csv(
         OUTPUT_NMAX_CSV,
         index=False,
         float_format="%.6f",
@@ -552,7 +545,7 @@ def main():
     # ------------------------------------------------------
 
     print(f"Cleaned data: {cleaned_csv}")
-    print(f"N_max results: {OUTPUT_NMAX_CSV}")
+    print(f"N_max Kersize results: {OUTPUT_NMAX_CSV}")
 
 
 
