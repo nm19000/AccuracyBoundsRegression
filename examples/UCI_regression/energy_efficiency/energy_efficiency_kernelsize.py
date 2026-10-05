@@ -15,6 +15,12 @@ from accuracy_bounds.regressionproblems.kersize_compute import (
     compute_kernel_size,
 )
 
+def compute_R_squared(feasible_sets):
+    """ Compute the R-squared value for a collection of feasible sets. Which is the optimal RMSE, only on D_prime and for the l2 norm."""
+    return sum(
+        np.sum((Y - Y.mean(axis=0))**2)
+        for Y in feasible_sets if len(Y)
+    ) / sum(len(Y) for Y in feasible_sets)
 # ==========================================================
 # CONFIG
 # ==========================================================
@@ -33,8 +39,8 @@ FEATURE_COLS = [
 ]
 
 TARGET_COLS = {
-    "Y1": "Y1",
-    "Y2": "Y2",
+    "Y1": "Heating Load",
+    "Y2": "Cooling Load",
 }
 
 LOG_TARGET = False
@@ -93,7 +99,7 @@ def load_energy_efficiency_dataset(
     print(f"Dataset shape: {df.shape}")
     print(f"Columns found: {df.columns.tolist()}")
 
-    required_cols = feature_cols + list(target_cols.values())
+    required_cols = feature_cols + list(target_cols.keys())
     missing = [col for col in required_cols if col not in df.columns]
 
     if missing:
@@ -108,9 +114,8 @@ def load_energy_efficiency_dataset(
     X = scaler.fit_transform(X_raw)
 
     targets = {}
-
-    for target_col, target_name in target_cols.items():
-        y = df[target_name].to_numpy(dtype=float).reshape(-1, 1)
+    for target_col in target_cols:
+        y = df[target_col].to_numpy(dtype=float).reshape(-1, 1)
         if LOG_TARGET:
             y = np.log1p(y)
         targets[target_col] = y
@@ -205,6 +210,8 @@ def compute_statistics_xy(
         dtype=int,
     )
 
+    R = np.sqrt(compute_R_squared(feasible_sets))
+
     truncation_limit = min(N_max + 1, len(y))
 
     fraction_at_Nmax = float(
@@ -219,6 +226,7 @@ def compute_statistics_xy(
         "M_prime": statistics["M_prime"],
         "Nk_stats": str(statistics["Nk_stats"]),
         "Kernel_size": statistics["Kernel_size"],
+        "R": R,
         "mean_feasible_set_size": statistics["mean_feasible_set_size"],
         "median_feasible_set_size": statistics["median_feasible_set_size"],
         "min_feasible_set_size": statistics["min_feasible_set_size"],

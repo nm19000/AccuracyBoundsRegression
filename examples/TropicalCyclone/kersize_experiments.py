@@ -25,7 +25,7 @@ test_images = []
 test_labels = []
 
 # small test subset
-N = 4000
+N = 2000
 
 count = 0
 
