@@ -3,7 +3,6 @@ import warnings
 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 
 from sklearn.preprocessing import StandardScaler
 
@@ -14,6 +13,7 @@ from accuracy_bounds.regressionproblems.feasible_sets import (
 from accuracy_bounds.regressionproblems.kersize_compute import (
     compute_kernel_size,
 )
+
 
 def compute_R_squared(feasible_sets):
     """ Compute the R-squared value for a collection of feasible sets. Which is the optimal RMSE, only on D_prime and for the l2 norm."""
@@ -74,7 +74,7 @@ SUMMARY_CSV = "energy_efficiency_average_kernel_size_xy.csv"
 Q_SUMMARY_CSV = "energy_efficiency_q_stability_summary_xy.csv"
 SELECTED_Q_CSV = "energy_efficiency_selected_q_xy.csv"
 NMAX_SUMMARY_CSV = "energy_efficiency_nmax_saturation_xy.csv"
-PLOT_DIR = "energy_efficiency_kernel_size_plots_xy"
+
 
 # ==========================================================
 # Dataset loading
@@ -495,6 +495,7 @@ def compute_nmax_saturation(
                     "selected_q": q_star,
                     "N_max": row["N_max"],
                     "Kernel_size": row["Kernel_size"],
+                    "R": row["R"],
                     "tau_x": row["tau_x"],
                     "mean_feasible_set_size": row["mean_feasible_set_size"],
                     "max_feasible_set_size": row["max_feasible_set_size"],
@@ -506,257 +507,6 @@ def compute_nmax_saturation(
 
     return pd.DataFrame(rows)
 
-# ==========================================================
-# Plot helpers
-# ==========================================================
-
-def plot_kernel_size_vs_q(
-    q_summary,
-    selected_q,
-    output_dir,
-):
-    os.makedirs(output_dir, exist_ok=True)
-
-    for target in q_summary["target"].unique():
-        g = q_summary[q_summary["target"] == target].sort_values("q")
-
-        plt.figure(figsize=(9, 6))
-        plt.plot(
-            g["q"],
-            g["Kernel_size"],
-            marker="o",
-            linewidth=2.0,
-            markersize=5,
-            color="tab:blue",
-            label=f"N_max={REFERENCE_NMAX}",
-        )
-
-        selected_row = selected_q[selected_q["target"] == target]
-        if not selected_row.empty:
-            q_star = float(selected_row["selected_q"].iloc[0])
-            k_star = float(selected_row["Kernel_size"].iloc[0])
-
-            plt.scatter(
-                [q_star],
-                [k_star],
-                s=100,
-                color="red",
-                zorder=5,
-                label=f"selected q={q_star:.2f}",
-            )
-            plt.axvline(q_star, color="red", linestyle="--", alpha=0.5)
-
-        target_name = TARGET_COLS[target]
-
-        plt.xlabel("q", fontsize=12)
-        plt.ylabel("Kernel size", fontsize=12)
-        plt.title(f"{target}: Kernel Size vs q ({target_name})", fontsize=13)
-        plt.grid(True, alpha=0.3)
-        plt.legend()
-        plt.tight_layout()
-
-        filename = os.path.join(output_dir, f"{target}_kernel_size_vs_q.png")
-        plt.savefig(filename, dpi=300, bbox_inches="tight")
-        plt.close()
-
-        print(f"Saved plot: {filename}")
-
-def plot_q_stability(
-    q_summary,
-    selected_q,
-    output_dir,
-):
-    os.makedirs(output_dir, exist_ok=True)
-
-    for target in q_summary["target"].unique():
-        g = q_summary[q_summary["target"] == target].sort_values("q")
-
-        fig, axes = plt.subplots(2, 1, figsize=(9, 8), sharex=True)
-
-        axes[0].plot(
-            g["q"],
-            g["rel_change_K"],
-            marker="o",
-            linewidth=1.8,
-            color="tab:blue",
-        )
-        axes[0].axhline(
-            REL_CHANGE_THRESHOLD,
-            color="red",
-            linestyle="--",
-            label=f"threshold={REL_CHANGE_THRESHOLD:.2f}",
-        )
-        axes[0].set_ylabel("Relative change in K", fontsize=11)
-        axes[0].set_title(
-            f"{target}: q-stability diagnostics (N_max={REFERENCE_NMAX})",
-            fontsize=13,
-        )
-        axes[0].grid(True, alpha=0.3)
-        axes[0].legend()
-
-        axes[1].plot(
-            g["q"],
-            g["normalized_local_curvature"],
-            marker="o",
-            linewidth=1.8,
-            color="tab:orange",
-        )
-        axes[1].axhline(
-            CURVATURE_THRESHOLD,
-            color="red",
-            linestyle="--",
-            label=f"threshold={CURVATURE_THRESHOLD:.2f}",
-        )
-
-        selected_row = selected_q[selected_q["target"] == target]
-        if not selected_row.empty:
-            q_star = float(selected_row["selected_q"].iloc[0])
-            axes[0].axvline(q_star, color="green", linestyle=":", alpha=0.8)
-            axes[1].axvline(
-                q_star,
-                color="green",
-                linestyle=":",
-                alpha=0.8,
-                label=f"selected q={q_star:.2f}",
-            )
-            axes[1].legend()
-
-        axes[1].set_xlabel("q", fontsize=11)
-        axes[1].set_ylabel("Normalized curvature", fontsize=11)
-        axes[1].grid(True, alpha=0.3)
-
-        plt.tight_layout()
-
-        filename = os.path.join(output_dir, f"{target}_q_stability.png")
-        plt.savefig(filename, dpi=300, bbox_inches="tight")
-        plt.close()
-
-        print(f"Saved plot: {filename}")
-
-def plot_kernel_size_vs_nmax(
-    nmax_results,
-    output_dir,
-):
-    os.makedirs(output_dir, exist_ok=True)
-
-    for target in nmax_results["target"].unique():
-        g = nmax_results[nmax_results["target"] == target].sort_values("N_max")
-        q_star = float(g["q"].iloc[0])
-
-        plt.figure(figsize=(9, 6))
-        plt.plot(
-            g["N_max"],
-            g["Kernel_size"],
-            marker="o",
-            linewidth=2.0,
-            markersize=5,
-            color="tab:green",
-        )
-        plt.axvline(
-            REFERENCE_NMAX,
-            color="black",
-            linestyle="--",
-            alpha=0.5,
-            label=f"reference N_max={REFERENCE_NMAX}",
-        )
-
-        target_name = TARGET_COLS[target]
-
-        plt.xlabel("N_max", fontsize=12)
-        plt.ylabel("Kernel size", fontsize=12)
-        plt.title(
-            f"{target}: Kernel Size vs N_max at selected q={q_star:.2f} ({target_name})",
-            fontsize=13,
-        )
-        plt.grid(True, alpha=0.3)
-        plt.legend()
-        plt.tight_layout()
-
-        filename = os.path.join(output_dir, f"{target}_kernel_size_vs_nmax.png")
-        plt.savefig(filename, dpi=300, bbox_inches="tight")
-        plt.close()
-
-        print(f"Saved plot: {filename}")
-
-def plot_feasible_set_size_vs_q(
-    q_summary,
-    selected_q,
-    output_dir,
-):
-    os.makedirs(output_dir, exist_ok=True)
-
-    for target in q_summary["target"].unique():
-        g = q_summary[q_summary["target"] == target].sort_values("q")
-
-        plt.figure(figsize=(9, 6))
-        plt.plot(
-            g["q"],
-            g["mean_feasible_set_size"],
-            marker="o",
-            linewidth=2.0,
-            markersize=5,
-            color="tab:purple",
-        )
-
-        selected_row = selected_q[selected_q["target"] == target]
-        if not selected_row.empty:
-            q_star = float(selected_row["selected_q"].iloc[0])
-            plt.axvline(
-                q_star,
-                color="red",
-                linestyle="--",
-                alpha=0.6,
-                label=f"selected q={q_star:.2f}",
-            )
-
-        target_name = TARGET_COLS[target]
-
-        plt.xlabel("q", fontsize=12)
-        plt.ylabel("Mean feasible-set size", fontsize=12)
-        plt.title(f"{target}: Feasible-Set Size vs q ({target_name})", fontsize=13)
-        plt.grid(True, alpha=0.3)
-
-        if not selected_row.empty:
-            plt.legend()
-
-        plt.tight_layout()
-
-        filename = os.path.join(output_dir, f"{target}_feasible_set_size_vs_q.png")
-        plt.savefig(filename, dpi=300, bbox_inches="tight")
-        plt.close()
-
-        print(f"Saved plot: {filename}")
-
-def plot_average_kernel_size(
-    summary,
-    output_dir,
-):
-    os.makedirs(output_dir, exist_ok=True)
-
-    labels = [
-        f"{target}\n{TARGET_COLS[target]}"
-        for target in summary["target"]
-    ]
-
-    plt.figure(figsize=(8, 6))
-    colors = ["tab:blue", "tab:orange"]
-
-    plt.bar(
-        labels,
-        summary["average_kernel_size"],
-        color=colors[:len(summary)],
-    )
-
-    plt.ylabel("Average kernel size", fontsize=12)
-    plt.title("Average Kernel Size Across N_max at Selected q", fontsize=13)
-    plt.grid(axis="y", alpha=0.3)
-    plt.tight_layout()
-
-    filename = os.path.join(output_dir, "average_kernel_size_by_target.png")
-    plt.savefig(filename, dpi=300, bbox_inches="tight")
-    plt.close()
-
-    print(f"Saved plot: {filename}")
 
 # ==========================================================
 # Main
@@ -879,32 +629,8 @@ def main():
     print(nmax_summary.to_string(index=False))
 
 
-    print("\n" + "=" * 70)
-    print("GENERATING PLOTS")
-    print("=" * 70)
+   
 
-    plot_kernel_size_vs_q(
-        q_summary=q_summary,
-        selected_q=selected_q,
-        output_dir=PLOT_DIR,
-    )
-
-    plot_q_stability(
-        q_summary=q_summary,
-        selected_q=selected_q,
-        output_dir=PLOT_DIR,
-    )
-
-    plot_kernel_size_vs_nmax(
-        nmax_results=nmax_results,
-        output_dir=PLOT_DIR,
-    )
-
-    plot_feasible_set_size_vs_q(
-        q_summary=q_summary,
-        selected_q=selected_q,
-        output_dir=PLOT_DIR,
-    )
 
 
     print("\n" + "=" * 70)
@@ -915,7 +641,7 @@ def main():
     print(f"q stability CSV: {Q_SUMMARY_CSV}")
     print(f"Selected q CSV: {SELECTED_Q_CSV}")
     print(f"N_max saturation CSV: {NMAX_SUMMARY_CSV}")
-    print(f"Plots: {PLOT_DIR}/")
+
 
     print("\nSelected q values:")
     for _, row in selected_q.iterrows():
