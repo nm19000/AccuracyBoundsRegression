@@ -8,7 +8,7 @@ from sklearn.preprocessing import StandardScaler
 from accuracy_bounds.classificationproblems.utils import wavelet_array_features
 from accuracy_bounds.regressionproblems.feasible_sets import feasible_sets_features_nn_xy
 from accuracy_bounds.regressionproblems.kersize_compute import compute_kernel_size
-from utils import tc_uncertainty2
+from utils import tc_uncertainty2, compute_R_squared
 
 
 
@@ -25,7 +25,7 @@ test_images = []
 test_labels = []
 
 # small test subset
-N = 10
+N = 4000
 
 count = 0
 
@@ -103,8 +103,9 @@ kersize_list =[]
 M_prime_list = []
 Nk_stats_list = []
 tau_x_list = []
+R_squared_list = []
 
-for N_max in [10]:
+for N_max in [300]:
 
     result = feasible_sets_features_nn_xy(
         features,
@@ -120,13 +121,16 @@ for N_max in [10]:
         result["feasible_sets"]
     )
 
+    R_squared = compute_R_squared(result["feasible_sets"])
 
     kersize_list.append(kersize)
     M_prime_list.append(M_prime)
     Nk_stats_list.append(Nk_stats)
     tau_x_list.append(result["tau_x"])
+    R_squared_list.append(R_squared)
 
 print("kernel size:", kersize_list)
 print("M prime:", M_prime_list)
 print("Nk stats:", Nk_stats_list)
 print("tau_x:", tau_x_list)
+print("R squared:", R_squared_list)

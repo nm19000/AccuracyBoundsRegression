@@ -8,17 +8,16 @@ from sklearn.preprocessing import StandardScaler
 from accuracy_bounds.classificationproblems.utils import wavelet_array_features
 from accuracy_bounds.regressionproblems.feasible_sets import feasible_sets_features_nn_xy
 from accuracy_bounds.regressionproblems.kersize_compute import compute_kernel_size
-from utils import tc_uncertainty2
+from utils import tc_uncertainty2, compute_R_squared
 
 
 SOURCE_DIR = Path(
-    "data/extracted/nasa_tropical_storm_competition_train_source"
+    "data/extracted/nasa_tropical_storm_competition_test_source"
 )
 
 LABEL_DIR = Path(
-    "data/extracted/nasa_tropical_storm_competition_train_labels"
+    "data/extracted/nasa_tropical_storm_competition_test_labels"
 )
-
 
 # --------------------------------------------------
 # Load a limited pool of storms
@@ -55,7 +54,7 @@ def load_storm_subset(N=20000, seed=123):
 
 
         storm_id = label_folder.name.replace(
-            "nasa_tropical_storm_competition_train_labels_",
+            "nasa_tropical_storm_competition_test_labels_",
             ""
         )
 
@@ -73,7 +72,7 @@ def load_storm_subset(N=20000, seed=123):
 
         image_folder = (
             SOURCE_DIR /
-            f"nasa_tropical_storm_competition_train_source_{storm_id}"
+            f"nasa_tropical_storm_competition_test_source_{storm_id}"
         )
 
         image_file = image_folder / "image.jpg"
@@ -154,13 +153,13 @@ for run in range(num_runs):
     )
 
 
-    train_images = all_images[indices]
-    train_labels = all_labels[indices]
+    test_images = all_images[indices]
+    test_labels = all_labels[indices]
 
 
     print(
         "Subset size:",
-        len(train_images)
+        len(test_images)
     )
 
 
@@ -169,7 +168,7 @@ for run in range(num_runs):
     # --------------------------------------------------
 
     features = wavelet_array_features(
-        train_images,
+        test_images,
         wavelet="haar"
     )
 
@@ -190,12 +189,14 @@ for run in range(num_runs):
 
     result = feasible_sets_features_nn_xy(
         features,
-        train_labels,
+        test_labels,
         N_max=300,
         qx=0.1,
         target_uncertainty=tc_uncertainty2,
     )
 
+
+    R = np.sqrt(compute_R_squared(result["feasible_sets"]))
 
 
     # --------------------------------------------------
@@ -211,6 +212,7 @@ for run in range(num_runs):
     print("M prime:", M_prime)
     print("tau_x:", result["tau_x"])
     print("Nk stats:", Nk_stats)
+    print("R:", R)
 
 
 
@@ -232,7 +234,7 @@ for run in range(num_runs):
 # --------------------------------------------------
 
 with open(
-    "tc_test_kernel_results.json",
+    "tc_test_kernel_R_results.json",
     "w"
 ) as f:
 
