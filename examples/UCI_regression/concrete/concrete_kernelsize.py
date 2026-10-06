@@ -5,7 +5,6 @@ import inspect
 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 
 from sklearn.preprocessing import StandardScaler
 
@@ -17,6 +16,12 @@ from accuracy_bounds.regressionproblems.kersize_compute import (
     compute_kernel_size,
 )
 
+def compute_R_squared(feasible_sets):
+    """ Compute the R-squared value for a collection of feasible sets. Which is the optimal RMSE, only on D_prime and for the l2 norm."""
+    return sum(
+        np.sum((Y - Y.mean(axis=0))**2)
+        for Y in feasible_sets if len(Y)
+    ) / sum(len(Y) for Y in feasible_sets)
 
 # ==========================================================
 # CONFIGURATION
@@ -88,20 +93,6 @@ NMAX_GRID = [
     300,
 ]
 
-# ----------------------------------------------------------
-# Feasible-set target-side tolerance
-# ----------------------------------------------------------
-#
-# This is retained as an explicit configuration parameter.
-#
-# If feasible_sets_features_nnx supports a qy argument, the
-# script will pass TAU_Y to qy.
-#
-# With TAU_Y = 0.0, only exactly matching target values
-# satisfy the Y-side condition.
-# ----------------------------------------------------------
-
-TAU_Y = 0.0
 
 # ----------------------------------------------------------
 # q-selection stability criteria
@@ -125,10 +116,6 @@ NMAX_SATURATION_TOL = 0.050
 
 OUTPUT_DIR = "concrete_kernel_results"
 
-PLOT_DIR = os.path.join(
-    OUTPUT_DIR,
-    "plots",
-)
 
 # ----------------------------------------------------------
 # Output CSV files
@@ -490,13 +477,7 @@ def call_feasible_sets_features_nnx(
     N_max,
 ):
     """
-    Call feasible_sets_features_nnx() in a way that is
-    compatible with slightly different versions of the
-    accuracy_bounds package.
-
-    The function signature is inspected so optional arguments
-    such as qy / tau_y / ext_D are only supplied when the
-    installed package supports them.
+    Call feasible_sets_features_nnx().
     """
 
     try:
@@ -532,45 +513,11 @@ def call_feasible_sets_features_nnx(
                 "appear to accept a q/qx/q_x argument."
             )
 
-        # Target-side tolerance / q.
-        #
-        # Your configuration uses TAU_Y = 0.0.
-        # Different versions of the package may call this
-        # parameter qy, q_y, tau_y, or not expose it at all.
-        #
-        if "qy" in parameters:
-            kwargs["qy"] = TAU_Y
-
-        elif "q_y" in parameters:
-            kwargs["q_y"] = TAU_Y
-
-        elif "tau_y" in parameters:
-            kwargs["tau_y"] = TAU_Y
 
         # ext_D is used by the version shown in your original
         # script. Only provide it when supported.
         if "ext_D" in parameters:
             kwargs["ext_D"] = False
-
-        print(
-            "\nCalling feasible_sets_features_nnx with:"
-        )
-
-        print(
-            f"    N_max = {N_max}"
-        )
-
-        print(
-            f"    q     = {q:.6f}"
-        )
-
-        print(
-            f"    TAU_Y = {TAU_Y:.6f}"
-        )
-
-        print(
-            f"    kwargs = {kwargs}"
-        )
 
         result = feasible_sets_features_nnx(
             X,
@@ -619,6 +566,8 @@ def extract_kernel_statistics(
         )
     )
 
+    R = np.sqrt(compute_R_squared(feasible_sets))
+
     feasible_sizes = np.asarray(
         [
             len(fs)
@@ -656,6 +605,8 @@ def extract_kernel_statistics(
         "max_feasible_set_size": int(
             np.max(feasible_sizes)
         ),
+
+        "R": float(R),
     }
 
 
@@ -672,11 +623,11 @@ def compute_statistics_concrete(
     """
     Compute feasible-set and kernel-size statistics.
 
-    Feasible-set definition:
+    Feasible-set computation:
 
         d_X(x_k, x_j) <= tau_x
-            OR
-        d_Y(y_k, y_j) <= tau_y
+    
+    The target criterion (d_Y(y_k, y_j) <= tau_y) is omitted here, and ideal noiseless targets are assumed.
 
     q controls the feature-side neighborhood.
 
@@ -786,8 +737,6 @@ def compute_statistics_concrete(
 
         "tau_x": tau_x,
 
-        "tau_y": float(TAU_Y),
-
         "M_prime": statistics[
             "M_prime"
         ],
@@ -827,6 +776,8 @@ def compute_statistics_concrete(
         "fraction_at_Nmax": (
             fraction_at_Nmax
         ),
+
+        "R": (statistics["R"]),
     }
 
 
@@ -922,25 +873,8 @@ def run_q_ablation(
 
     rows = []
 
-    print("\n" + "=" * 70)
-    print("STAGE 1: q ABLATION")
-    print("=" * 70)
-
-    print(
-        f"q grid: {q_grid}"
-    )
-
-    print(
-        f"Fixed N_max: "
-        f"{reference_nmax}"
-    )
-
     for q in q_grid:
 
-        print(
-            f"\n    q={q:.2f}, "
-            f"N_max={reference_nmax}"
-        )
 
         row = (
             compute_statistics_concrete(
@@ -1140,11 +1074,6 @@ def select_stable_q(
                     "tau_x"
                 ],
 
-                "tau_y": selected.get(
-                    "tau_y",
-                    TAU_Y,
-                ),
-
                 "Kernel_size": selected[
                     "Kernel_size"
                 ],
@@ -1229,24 +1158,7 @@ def run_nmax_ablation(
         ].iloc[0]
     )
 
-    print("\n" + "=" * 70)
-    print("STAGE 2: N_max / KERNEL-SIZE ABLATION")
-    print("=" * 70)
-
-    print(
-        f"Selected q = {q_star:.4f}"
-    )
-
-    print(
-        f"N_max grid: {nmax_grid}"
-    )
-
     for N_max in nmax_grid:
-
-        print(
-            f"\n    q={q_star:.2f}, "
-            f"N_max={N_max}"
-        )
 
         row = (
             compute_statistics_concrete(
@@ -1348,14 +1260,11 @@ def compute_nmax_saturation(
                     "Kernel_size"
                 ],
 
+                "R": row["R"],
+
                 "tau_x": row[
                     "tau_x"
                 ],
-
-                "tau_y": row.get(
-                    "tau_y",
-                    TAU_Y,
-                ),
 
                 "mean_feasible_set_size": (
                     row[
@@ -1387,533 +1296,6 @@ def compute_nmax_saturation(
 
 
 # ==========================================================
-# PLOT: KERNEL SIZE VS q
-# ==========================================================
-
-def plot_kernel_size_vs_q(
-    q_summary,
-    selected_q,
-    output_dir,
-):
-    os.makedirs(
-        output_dir,
-        exist_ok=True,
-    )
-
-    g = q_summary.sort_values(
-        "q"
-    )
-
-    plt.figure(
-        figsize=(9, 6)
-    )
-
-    plt.plot(
-        g["q"],
-        g["Kernel_size"],
-        marker="o",
-        linewidth=2.0,
-        markersize=5,
-        color="tab:blue",
-        label=(
-            f"N_max="
-            f"{REFERENCE_NMAX}"
-        ),
-    )
-
-    q_star = float(
-        selected_q[
-            "selected_q"
-        ].iloc[0]
-    )
-
-    k_star = float(
-        selected_q[
-            "Kernel_size"
-        ].iloc[0]
-    )
-
-    plt.scatter(
-        [q_star],
-        [k_star],
-        s=100,
-        color="red",
-        zorder=5,
-        label=(
-            f"selected q="
-            f"{q_star:.2f}"
-        ),
-    )
-
-    plt.axvline(
-        q_star,
-        color="red",
-        linestyle="--",
-        alpha=0.5,
-    )
-
-    plt.xlabel(
-        "q",
-        fontsize=12,
-    )
-
-    plt.ylabel(
-        "Kernel size",
-        fontsize=12,
-    )
-
-    plt.title(
-        "Concrete Compressive Strength: "
-        "Kernel Size vs q",
-        fontsize=13,
-    )
-
-    plt.grid(
-        True,
-        alpha=0.3,
-    )
-
-    plt.legend()
-
-    plt.tight_layout()
-
-    filename = os.path.join(
-        output_dir,
-        "concrete_kernel_size_vs_q.png",
-    )
-
-    plt.savefig(
-        filename,
-        dpi=300,
-        bbox_inches="tight",
-    )
-
-    plt.close()
-
-    print(
-        f"Saved plot: {filename}"
-    )
-
-
-# ==========================================================
-# PLOT: q STABILITY
-# ==========================================================
-
-def plot_q_stability(
-    q_summary,
-    selected_q,
-    output_dir,
-):
-    os.makedirs(
-        output_dir,
-        exist_ok=True,
-    )
-
-    g = q_summary.sort_values(
-        "q"
-    )
-
-    q_star = float(
-        selected_q[
-            "selected_q"
-        ].iloc[0]
-    )
-
-    fig, axes = plt.subplots(
-        2,
-        1,
-        figsize=(9, 8),
-        sharex=True,
-    )
-
-    # ------------------------------------------------------
-    # Relative change
-    # ------------------------------------------------------
-
-    axes[0].plot(
-        g["q"],
-        g["rel_change_K"],
-        marker="o",
-        linewidth=1.8,
-        color="tab:blue",
-    )
-
-    axes[0].axhline(
-        REL_CHANGE_THRESHOLD,
-        color="red",
-        linestyle="--",
-        label=(
-            f"threshold="
-            f"{REL_CHANGE_THRESHOLD:.2f}"
-        ),
-    )
-
-    axes[0].axvline(
-        q_star,
-        color="green",
-        linestyle=":",
-        alpha=0.8,
-        label=(
-            f"selected q="
-            f"{q_star:.2f}"
-        ),
-    )
-
-    axes[0].set_ylabel(
-        "Relative change in K",
-        fontsize=11,
-    )
-
-    axes[0].set_title(
-        "Concrete Compressive Strength: "
-        "q-stability diagnostics",
-        fontsize=13,
-    )
-
-    axes[0].grid(
-        True,
-        alpha=0.3,
-    )
-
-    axes[0].legend()
-
-    # ------------------------------------------------------
-    # Curvature
-    # ------------------------------------------------------
-
-    axes[1].plot(
-        g["q"],
-        g[
-            "normalized_local_curvature"
-        ],
-        marker="o",
-        linewidth=1.8,
-        color="tab:orange",
-    )
-
-    axes[1].axhline(
-        CURVATURE_THRESHOLD,
-        color="red",
-        linestyle="--",
-        label=(
-            f"threshold="
-            f"{CURVATURE_THRESHOLD:.2f}"
-        ),
-    )
-
-    axes[1].axvline(
-        q_star,
-        color="green",
-        linestyle=":",
-        alpha=0.8,
-        label=(
-            f"selected q="
-            f"{q_star:.2f}"
-        ),
-    )
-
-    axes[1].set_xlabel(
-        "q",
-        fontsize=11,
-    )
-
-    axes[1].set_ylabel(
-        "Normalized curvature",
-        fontsize=11,
-    )
-
-    axes[1].grid(
-        True,
-        alpha=0.3,
-    )
-
-    axes[1].legend()
-
-    plt.tight_layout()
-
-    filename = os.path.join(
-        output_dir,
-        "concrete_q_stability.png",
-    )
-
-    plt.savefig(
-        filename,
-        dpi=300,
-        bbox_inches="tight",
-    )
-
-    plt.close()
-
-    print(
-        f"Saved plot: {filename}"
-    )
-
-
-# ==========================================================
-# PLOT: KERNEL SIZE VS N_max
-# ==========================================================
-
-def plot_kernel_size_vs_nmax(
-    nmax_results,
-    output_dir,
-):
-    os.makedirs(
-        output_dir,
-        exist_ok=True,
-    )
-
-    g = nmax_results.sort_values(
-        "N_max"
-    )
-
-    q_star = float(
-        g["q"].iloc[0]
-    )
-
-    plt.figure(
-        figsize=(9, 6)
-    )
-
-    plt.plot(
-        g["N_max"],
-        g["Kernel_size"],
-        marker="o",
-        linewidth=2.0,
-        markersize=5,
-        color="tab:green",
-    )
-
-    plt.axvline(
-        REFERENCE_NMAX,
-        color="black",
-        linestyle="--",
-        alpha=0.5,
-        label=(
-            f"reference N_max="
-            f"{REFERENCE_NMAX}"
-        ),
-    )
-
-    plt.xlabel(
-        "N_max",
-        fontsize=12,
-    )
-
-    plt.ylabel(
-        "Kernel size",
-        fontsize=12,
-    )
-
-    plt.title(
-        "Concrete Compressive Strength: "
-        f"Kernel Size vs N_max "
-        f"at selected q={q_star:.2f}",
-        fontsize=13,
-    )
-
-    plt.grid(
-        True,
-        alpha=0.3,
-    )
-
-    plt.legend()
-
-    plt.tight_layout()
-
-    filename = os.path.join(
-        output_dir,
-        "concrete_kernel_size_vs_nmax.png",
-    )
-
-    plt.savefig(
-        filename,
-        dpi=300,
-        bbox_inches="tight",
-    )
-
-    plt.close()
-
-    print(
-        f"Saved plot: {filename}"
-    )
-
-
-# ==========================================================
-# PLOT: FEASIBLE-SET SIZE VS q
-# ==========================================================
-
-def plot_feasible_set_size_vs_q(
-    q_summary,
-    selected_q,
-    output_dir,
-):
-    os.makedirs(
-        output_dir,
-        exist_ok=True,
-    )
-
-    g = q_summary.sort_values(
-        "q"
-    )
-
-    q_star = float(
-        selected_q[
-            "selected_q"
-        ].iloc[0]
-    )
-
-    plt.figure(
-        figsize=(9, 6)
-    )
-
-    plt.plot(
-        g["q"],
-        g["mean_feasible_set_size"],
-        marker="o",
-        linewidth=2.0,
-        markersize=5,
-        color="tab:purple",
-    )
-
-    plt.axvline(
-        q_star,
-        color="red",
-        linestyle="--",
-        alpha=0.6,
-        label=(
-            f"selected q="
-            f"{q_star:.2f}"
-        ),
-    )
-
-    plt.xlabel(
-        "q",
-        fontsize=12,
-    )
-
-    plt.ylabel(
-        "Mean feasible-set size",
-        fontsize=12,
-    )
-
-    plt.title(
-        "Concrete Compressive Strength: "
-        "Feasible-Set Size vs q",
-        fontsize=13,
-    )
-
-    plt.grid(
-        True,
-        alpha=0.3,
-    )
-
-    plt.legend()
-
-    plt.tight_layout()
-
-    filename = os.path.join(
-        output_dir,
-        "concrete_feasible_set_size_vs_q.png",
-    )
-
-    plt.savefig(
-        filename,
-        dpi=300,
-        bbox_inches="tight",
-    )
-
-    plt.close()
-
-    print(
-        f"Saved plot: {filename}"
-    )
-
-
-# ==========================================================
-# PLOT: N_max SATURATION
-# ==========================================================
-
-def plot_nmax_saturation(
-    nmax_summary,
-    output_dir,
-):
-    os.makedirs(
-        output_dir,
-        exist_ok=True,
-    )
-
-    g = nmax_summary.sort_values(
-        "N_max"
-    )
-
-    plt.figure(
-        figsize=(9, 6)
-    )
-
-    plt.plot(
-        g["N_max"],
-        g["relative_to_reference"],
-        marker="o",
-        linewidth=2.0,
-        markersize=5,
-        color="tab:red",
-        label="Relative to reference",
-    )
-
-    plt.axhline(
-        NMAX_SATURATION_TOL,
-        color="black",
-        linestyle="--",
-        label=(
-            f"saturation tolerance="
-            f"{NMAX_SATURATION_TOL:.2f}"
-        ),
-    )
-
-    plt.xlabel(
-        "N_max",
-        fontsize=12,
-    )
-
-    plt.ylabel(
-        "Relative difference from reference K",
-        fontsize=12,
-    )
-
-    plt.title(
-        "Concrete Compressive Strength: "
-        "N_max Saturation",
-        fontsize=13,
-    )
-
-    plt.grid(
-        True,
-        alpha=0.3,
-    )
-
-    plt.legend()
-
-    plt.tight_layout()
-
-    filename = os.path.join(
-        output_dir,
-        "concrete_nmax_saturation.png",
-    )
-
-    plt.savefig(
-        filename,
-        dpi=300,
-        bbox_inches="tight",
-    )
-
-    plt.close()
-
-    print(
-        f"Saved plot: {filename}"
-    )
-
-
-# ==========================================================
 # MAIN
 # ==========================================================
 
@@ -1932,11 +1314,6 @@ def main():
 
     os.makedirs(
         OUTPUT_DIR,
-        exist_ok=True,
-    )
-
-    os.makedirs(
-        PLOT_DIR,
         exist_ok=True,
     )
 
@@ -1959,13 +1336,6 @@ def main():
     )
 
     print(
-        "\nFeasible-set definition:"
-        "\n    d_X(x_k,x_j) <= tau_x"
-        "\n        OR"
-        "\n    d_Y(y_k,y_j) <= tau_y"
-    )
-
-    print(
         f"\nQ_GRID: {Q_GRID}"
     )
 
@@ -1977,10 +1347,6 @@ def main():
     print(
         f"FINAL NMAX_GRID: "
         f"{NMAX_GRID}"
-    )
-
-    print(
-        f"TAU_Y: {TAU_Y}"
     )
 
     print(
@@ -2033,17 +1399,6 @@ def main():
         float_format="%.6f",
     )
 
-    print("\n" + "=" * 70)
-
-    print(
-        "q ABLATION RESULTS SAVED"
-    )
-
-    print("=" * 70)
-
-    print(
-        f"    {OUTPUT_Q_CSV}"
-    )
 
     # ------------------------------------------------------
     # q stability summary
@@ -2268,45 +1623,7 @@ def main():
         )
     )
 
-    # ======================================================
-    # PLOTS
-    # ======================================================
 
-    print("\n" + "=" * 70)
-
-    print(
-        "GENERATING PLOTS"
-    )
-
-    print("=" * 70)
-
-    plot_kernel_size_vs_q(
-        q_summary=q_summary,
-        selected_q=selected_q,
-        output_dir=PLOT_DIR,
-    )
-
-    plot_q_stability(
-        q_summary=q_summary,
-        selected_q=selected_q,
-        output_dir=PLOT_DIR,
-    )
-
-    plot_kernel_size_vs_nmax(
-        nmax_results=nmax_results,
-        output_dir=PLOT_DIR,
-    )
-
-    plot_feasible_set_size_vs_q(
-        q_summary=q_summary,
-        selected_q=selected_q,
-        output_dir=PLOT_DIR,
-    )
-
-    plot_nmax_saturation(
-        nmax_summary=nmax_summary,
-        output_dir=PLOT_DIR,
-    )
 
     # ======================================================
     # COMPLETE
@@ -2339,11 +1656,6 @@ def main():
     print(
         f"N_max saturation CSV: "
         f"{NMAX_SUMMARY_CSV}"
-    )
-
-    print(
-        f"Plots: "
-        f"{PLOT_DIR}/"
     )
 
     # ------------------------------------------------------
@@ -2415,7 +1727,6 @@ def main():
         f"strength: "
         f"q={q_star:.2f}, "
         f"tau_x={tau_x_star:.6f}, "
-        f"tau_y={TAU_Y:.6f}, "
         f"Kernel_size={kernel_star:.6f}, "
         f"plateau="
         f"[{plateau_start_str}, "
