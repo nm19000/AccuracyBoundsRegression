@@ -8,7 +8,8 @@ def feasible_sets_classification_nn(
     inputs = None,
     N_max=50,
     qx=0.10,
-    ext_d = False
+    ext_d = False,
+    neighbor_stats = None, 
 ):
     """
     Construct feasible label sets for a classification problem using
@@ -59,14 +60,15 @@ def feasible_sets_classification_nn(
     # --------------------------------------------------
     n_neighbors = min(N_max + 1, N)
 
-    nbrs = NearestNeighbors(
-        n_neighbors=n_neighbors,
-        algorithm="auto"
-    )
 
-    nbrs.fit(features)
+    if neighbor_stats is None or len(neighbor_stats["distances"][0]) < n_neighbors:
+        nbrs = NearestNeighbors(n_neighbors=n_neighbors, algorithm="auto")
+        nbrs.fit(features)
+        distances, indices = nbrs.kneighbors(features)
+        neighbor_stats = {"distances": distances, "indices": indices}
 
-    distances, indices = nbrs.kneighbors(features)
+    distances = neighbor_stats["distances"][:, :n_neighbors]
+    indices = neighbor_stats["indices"][:, :n_neighbors]
 
     # --------------------------------------------------
     # Estimate tau_x
@@ -75,24 +77,22 @@ def feasible_sets_classification_nn(
     tau_x = float(np.quantile(nearest_dist, qx))
 
     # --------------------------------------------------
-    # Compute feasible sets
+    # Compute feasible sets (vectorized)
     # --------------------------------------------------
-    feasible_sets = []
+    labels_arr = np.asarray(labels)
+    neighbor_labels = labels_arr[indices]          # (N, n_neighbors)
+    mask = distances <= tau_x                      # (N, n_neighbors)
+
+    # Split the flat array of kept labels back into one array per sample
+    counts = mask.sum(axis=1)
+    feasible_sets = np.split(neighbor_labels[mask], np.cumsum(counts)[:-1])
+
+    # Build D_prime without a Python double loop
     D_prime = []
-
-    for k in range(N):
-
-        feasible = []
-
-        for idx, dist in zip(indices[k], distances[k]):
-
-            if dist <= tau_x:
-
-                feasible.append(labels[idx])
-                if ext_d and inputs is not None:
-                    D_prime.append((inputs[k], labels[idx]))
-
-        feasible_sets.append(np.array(feasible))
+    if ext_d and inputs is not None:
+        rows, cols = np.nonzero(mask)              # row-major = same order as before
+        kept_labels = neighbor_labels[rows, cols]
+        D_prime = [(inputs[r], l) for r, l in zip(rows, kept_labels)]
 
 
     return {

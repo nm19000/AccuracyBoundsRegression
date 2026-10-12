@@ -1,3 +1,7 @@
+# data folders
+/examples/MNIST/data
+/examples/EuroSAT/data
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
