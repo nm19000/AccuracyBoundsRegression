@@ -13,19 +13,19 @@ from utils import tc_uncertainty2, compute_R_squared
 
 
 SOURCE_DIR = Path(
-    "data/extracted/nasa_tropical_storm_competition_test_source"
+    "data/extracted/nasa_tropical_storm_competition_train_source"
 )
 
 LABEL_DIR = Path(
-    "data/extracted/nasa_tropical_storm_competition_test_labels"
+    "data/extracted/nasa_tropical_storm_competition_train_labels"
 )
 
 
-test_images = []
-test_labels = []
+train_images = []
+train_labels = []
 
-# small test subset
-N = 2000
+# small train subset
+N = 1000
 
 count = 0
 
@@ -39,7 +39,7 @@ for label_folder in LABEL_DIR.iterdir():
 
     # get storm id
     storm_id = label_folder.name.replace(
-        "nasa_tropical_storm_competition_test_labels_",
+        "nasa_tropical_storm_competition_train_labels_",
         ""
     )
 
@@ -53,7 +53,7 @@ for label_folder in LABEL_DIR.iterdir():
     # matching image directory
     image_folder = (
         SOURCE_DIR /
-        f"nasa_tropical_storm_competition_test_source_{storm_id}"
+        f"nasa_tropical_storm_competition_train_source_{storm_id}"
     )
 
     image_file = image_folder / "image.jpg"
@@ -73,25 +73,25 @@ for label_folder in LABEL_DIR.iterdir():
 
     img = np.array(img)
 
-    test_images.append(img)
-    test_labels.append(wind_speed)
+    train_images.append(img)
+    train_labels.append(wind_speed)
 
     count += 1
 
-print("Loaded", len(test_images), "images")
+print("Loaded", len(train_images), "images")
 
 
-test_images = np.stack(test_images)
+train_images = np.stack(train_images)
 
-test_labels = np.array(test_labels).reshape(-1,1)
+train_labels = np.array(train_labels).reshape(-1,1)
 
 
-print("images:", test_images.shape)
-print("labels:", test_labels.shape)
+print("images:", train_images.shape)
+print("labels:", train_labels.shape)
 
 
 features = wavelet_array_features(
-    test_images,
+    train_images,
     wavelet="haar"
 )
 
@@ -105,11 +105,11 @@ Nk_stats_list = []
 tau_x_list = []
 R_squared_list = []
 
-for N_max in [300]:
+for N_max in [10,20,30,40,50,100, 200,300,450]:
 
     result = feasible_sets_features_nn_xy(
         features,
-        test_labels,
+        train_labels,
         N_max=N_max,
         qx=0.1,
         target_uncertainty=tc_uncertainty2,

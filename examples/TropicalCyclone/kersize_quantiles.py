@@ -12,11 +12,11 @@ from utils import tc_uncertainty2
 
 
 SOURCE_DIR = Path(
-    "data/extracted/nasa_tropical_storm_competition_test_source"
+    "data/extracted/nasa_tropical_storm_competition_train_source"
 )
 
 LABEL_DIR = Path(
-    "data/extracted/nasa_tropical_storm_competition_test_labels"
+    "data/extracted/nasa_tropical_storm_competition_train_labels"
 )
 
 
@@ -24,7 +24,7 @@ LABEL_DIR = Path(
 # Load exactly 1K storms once
 # --------------------------------------------------
 
-def load_storm_subset(N=1000, seed=123):
+def load_storm_subset(N=1000, seed=124):
 
     rng = np.random.default_rng(seed)
 
@@ -49,7 +49,7 @@ def load_storm_subset(N=1000, seed=123):
             print(f"Loading image {i}/{len(selected_folders)}")
 
         storm_id = label_folder.name.replace(
-            "nasa_tropical_storm_competition_test_labels_",
+            "nasa_tropical_storm_competition_train_labels_",
             ""
         )
 
@@ -62,7 +62,7 @@ def load_storm_subset(N=1000, seed=123):
         # Find image
         image_folder = (
             SOURCE_DIR /
-            f"nasa_tropical_storm_competition_test_source_{storm_id}"
+            f"nasa_tropical_storm_competition_train_source_{storm_id}"
         )
 
         image_file = image_folder / "image.jpg"
@@ -90,14 +90,14 @@ def load_storm_subset(N=1000, seed=123):
 
 SAMPLE_SIZE = 1000
 
-test_images, test_labels = load_storm_subset(
+train_images, train_labels = load_storm_subset(
     N=SAMPLE_SIZE,
     seed=123
 )
 
 print("\nLoaded storm sample")
-print("images:", test_images.shape)
-print("labels:", test_labels.shape)
+print("images:", train_images.shape)
+print("labels:", train_labels.shape)
 
 
 # --------------------------------------------------
@@ -107,7 +107,7 @@ print("labels:", test_labels.shape)
 print("\nComputing wavelet features...")
 
 features = wavelet_array_features(
-    test_images,
+    train_images,
     wavelet="haar"
 )
 
@@ -155,7 +155,7 @@ for q in Q_GRID:
 
     result = feasible_sets_features_nn_xy(
         features,
-        test_labels,
+        train_labels,
         N_max=300,
         qx=q,
         target_uncertainty=tc_uncertainty2,
@@ -192,7 +192,7 @@ for q in Q_GRID:
 # --------------------------------------------------
 
 with open(
-    "tc_test_kernel_results.json",
+    "tc_train_kernel_results.json",
     "w"
 ) as f:
 
