@@ -1,6 +1,6 @@
 # data folders
-/examples/MNIST/data
-/examples/EuroSAT/data
+/examples/*/data
+/examples/*/experiments
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
