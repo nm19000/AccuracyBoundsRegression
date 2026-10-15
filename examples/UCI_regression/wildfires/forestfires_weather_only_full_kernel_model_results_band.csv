@@ -1,7 +1,0 @@
-mode,q,Model,selection_mode,tau_x_full,M_prime_full,Nk_stats_full,Kernel_full,LB_full,UB_full,RMSE_train,RMSE_test,Lhat,in_band,used_fallback
-input_only_full_kernel,0.200000,GP^o,accurate_in_band,0.070368,653,"(1, 1.263056092843327, 1.0, 4)",1.151558,0.575779,1.151558,0.648452,2.695617,4.392176,True,False
-input_only_full_kernel,0.200000,GP,smooth_in_band,0.070368,653,"(1, 1.263056092843327, 1.0, 4)",1.151558,0.575779,1.151558,1.078833,1.895808,2.312083,True,False
-input_only_full_kernel,0.200000,MLP^o,accurate_in_band,0.070368,653,"(1, 1.263056092843327, 1.0, 4)",1.151558,0.575779,1.151558,0.936612,1.512056,3.167008,True,False
-input_only_full_kernel,0.200000,MLP,smooth_in_band,0.070368,653,"(1, 1.263056092843327, 1.0, 4)",1.151558,0.575779,1.151558,0.977833,1.480104,2.800640,True,False
-input_only_full_kernel,0.200000,SVR^o,accurate_in_band,0.070368,653,"(1, 1.263056092843327, 1.0, 4)",1.151558,0.575779,1.151558,0.624311,1.534372,4.797103,True,False
-input_only_full_kernel,0.200000,SVR,smooth_in_band,0.070368,653,"(1, 1.263056092843327, 1.0, 4)",1.151558,0.575779,1.151558,1.091429,1.431723,2.385818,True,False
