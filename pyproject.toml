@@ -12,20 +12,36 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
+
 dependencies = [
-    "pytest",
     "click",
-    "pdoc",
     "numpy",
     "tqdm",
     "joblib",
     "scipy",
-    ]
+]
+
 
 [project.optional-dependencies]
 torch = [
     "torch",
 ]
+examples = [
+    "jupyterlab",
+    "ipykernel",
+    "matplotlib",
+]
+all = [
+    "accuracy_bounds[torch,examples]",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pdoc",
+]
+
+
 
 [build-system]
 requires = [

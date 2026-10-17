@@ -20,31 +20,60 @@ If you use the code and find it useful, please cite the paper.
 
 ## Installation
 
-This project has been tested under **Python 3.7** on a Unix development environment.  
+The project requires **Python 3.8 or newer** and has been tested on Unix (Linux and macOS).
 
-### 1. Clone the repository and create a virtual environment and change into the repository folder.
+### 1. Clone the repository
 ```
 git clone https://github.com/nm19000/AccuracyBoundsRegression.git
 cd AccuracyBoundsRegression
 ```
 
-### 2. Create and activate a virtual environment
+### 2. Install
+
+Choose the variant you need:
+
+| Variant | What you get |
+|---|---|
+| core | the `accuracy_bounds` package only |
+| `examples` | + Jupyter and everything needed to run the example notebooks |
+| `torch` | + PyTorch and torchvision (needed for the MNIST and EuroSAT examples and training scripts) |
+| `all` | everything above |
+
+#### With [uv](https://docs.astral.sh/uv/) (recommended)
 ```
-python -m venv venv
-source venv/bin/activate
+uv sync --extra examples     # core + notebooks
+uv sync --extra all          # core + notebooks + PyTorch
+uv sync                      # core only
 ```
-### 3. Install the project
-#### 3.1 Lightweight Version (without PyTorch)
+uv creates the virtual environment in `.venv` and installs the package in editable mode.
+
+#### With pip
 ```
-pip install -e .
+python -m venv .venv
+source .venv/bin/activate
+pip install -e ".[examples]"   # or ".[all]", or "." for core only
 ```
-#### 3.2 Full version (with PyTorch)
+
+### 3. Run the example notebooks
 ```
-pip install -e .[torch]
+uv run jupyter lab     # with uv
+jupyter lab            # with pip, inside the activated environment
+```
+Then open the notebooks in the [`examples`](https://github.com/nm19000/AccuracyBoundsRegression/tree/main/examples) folder. Keep the notebooks in their folders, as they import helper modules located next to them.
+
+If you use a Jupyter installation outside this environment (e.g. VS Code), register the environment as a kernel once:
+```
+uv run python -m ipykernel install --user --name accuracy-bounds --display-name "Python (accuracy-bounds)"
+```
+
+### For contributors
+`uv sync` also installs the development tools (pytest, pdoc). Run the tests with:
+```
+uv run pytest
 ```
 
 ## Example Applications
-The repository comes with various [example notebooks](https://github.com/nm19000/AccuracyBoundsRegression/tree/main/examples) for regression and classification tasks. For MNIST and EuroSAT the folders also contain training scripts for training with label noise. 
+The repository comes with various [example notebooks](https://github.com/nm19000/AccuracyBoundsRegression/tree/main/examples) for regression and classification tasks (see [Installation](#installation) for how to run them). For MNIST and EuroSAT the folders also contain training scripts for training with label noise; these require the `torch` variant.
 
 **Regression Examples**
 
