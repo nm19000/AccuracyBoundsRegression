@@ -1,7 +1,8 @@
 from torchgeo.datasets import TropicalCyclone
+from pathlib import Path
 
 dataset = TropicalCyclone(
-    root="examples/TropicalCyclone/data",
+    root=str(Path(__file__).resolve().parent / "data"),
     split="train",
 )
 

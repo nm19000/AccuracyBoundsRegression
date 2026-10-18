@@ -35,42 +35,17 @@ Choose the variant you need:
 | Variant | What you get |
 |---|---|
 | core | the `accuracy_bounds` package only |
-| `examples` | + Jupyter and everything needed to run the example notebooks |
-| `torch` | + PyTorch and torchvision (needed for the MNIST and EuroSAT examples and training scripts) |
-| `all` | everything above |
+| `examples` | + Jupyter, torchvision and everything needed to run the example notebooks |
 
-#### With [uv](https://docs.astral.sh/uv/) (recommended)
-```
-uv sync --extra examples     # core + notebooks
-uv sync --extra all          # core + notebooks + PyTorch
-uv sync                      # core only
-```
-uv creates the virtual environment in `.venv` and installs the package in editable mode.
 
 #### With pip
 ```
 python -m venv .venv
 source .venv/bin/activate
-pip install -e ".[examples]"   # or ".[all]", or "." for core only
+pip install -e ".[examples]" # for runnable examples
+# pip install -e "." #  for core only
 ```
 
-### 3. Run the example notebooks
-```
-uv run jupyter lab     # with uv
-jupyter lab            # with pip, inside the activated environment
-```
-Then open the notebooks in the [`examples`](https://github.com/nm19000/AccuracyBoundsRegression/tree/main/examples) folder. Keep the notebooks in their folders, as they import helper modules located next to them.
-
-If you use a Jupyter installation outside this environment (e.g. VS Code), register the environment as a kernel once:
-```
-uv run python -m ipykernel install --user --name accuracy-bounds --display-name "Python (accuracy-bounds)"
-```
-
-### For contributors
-`uv sync` also installs the development tools (pytest, pdoc). Run the tests with:
-```
-uv run pytest
-```
 
 ## Example Applications
 The repository comes with various [example notebooks](https://github.com/nm19000/AccuracyBoundsRegression/tree/main/examples) for regression and classification tasks (see [Installation](#installation) for how to run them). For MNIST and EuroSAT the folders also contain training scripts for training with label noise; these require the `torch` variant.
