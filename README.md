@@ -1,5 +1,5 @@
 # Deterministic Bounds on Accuracy and Stability of Metric-Space Regression and Classification
-This repository contains code and example notebooks for the *Deterministic Bounds on Accuracy and Stability of Metric-Space Regression and Classification* as introduced in [this preprint](add_link_here_when_online) .
+This repository contains code and example notebooks for the *Deterministic Bounds on Accuracy and Stability of Metric-Space Regression and Classification* as introduced in [this preprint](https://arxiv.org/pdf/2610.22564) .
 
 <img width="800" alt="Performance Bounds Overview" src="https://github.com/user-attachments/assets/c2e9258d-faf5-4360-a971-236c5fcd1821" />
 
@@ -11,10 +11,11 @@ If you use the code and find it useful, please cite the paper.
 
 ```bibtex
 @article{gottschling2026deterministic,
-  author    = {Gottschling, Nina Maria and Gawlikowski, Jakob and Caprio, Michele},
-  title     = {Deterministic Bounds on Accuracy and Stability of Metric-Space Regression and Classification},
-  year      = {2026},
-  journal   = {arXiv preprint arXiv:TBA}
+  author  = {Gottschling, Nina Maria and Gawlikowski, Jakob and Caprio, Michele},
+  title   = {Deterministic Bounds on Accuracy and Stability of Metric-Space Regression and Classification},
+  year    = {2026},
+  journal = {arXiv preprint arXiv:2610.22564},
+  url     = {https://arxiv.org/abs/2610.22564}
 }
 ```
 
@@ -110,9 +111,10 @@ If you use this code in your research, please cite our paper:
 
 ```bibtex
 @article{gottschling2026deterministic,
-  author    = {Gottschling, Nina Maria and Gawlikowski, Jakob and Caprio, Michele},
-  title     = {Deterministic Bounds on Accuracy and Stability of Metric-Space Regression and Classification},
-  year      = {2026},
-  journal   = {arXiv preprint arXiv:TBA}
+  author  = {Gottschling, Nina Maria and Gawlikowski, Jakob and Caprio, Michele},
+  title   = {Deterministic Bounds on Accuracy and Stability of Metric-Space Regression and Classification},
+  year    = {2026},
+  journal = {arXiv preprint arXiv:2610.22564},
+  url     = {https://arxiv.org/abs/2610.22564}
 }
 ```
